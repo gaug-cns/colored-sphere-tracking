@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 2.8)
+project(tracking)
+
+
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS "-std=c++11")
+
+
+
+find_package(PkgConfig)
+
+pkg_check_modules(PC_OPENNI2 libopenni2)
+if (NOT PC_OPENNI2_FOUND)
+  pkg_check_modules(PC_OPENNI2 REQUIRED openni2)
+endif()
+
+list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+
+
+
+find_package (Eigen REQUIRED)
+find_package(Ceres REQUIRED)
+find_package(OpenCV REQUIRED)
+
+
+
+link_directories(${PC_OPENNI2_LIBRARY_DIRS})
+include_directories (include ${CERES_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR} ${PC_OPENNI2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+
+file(GLOB SRCFILES src/*.cpp)
+add_executable(tracking ${SRCFILES})
+
+target_link_libraries(tracking ${CERES_LIBRARIES} ${OpenCV_LIBS} ${PC_OPENNI2_LIBRARIES})
