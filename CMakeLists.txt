@@ -3,8 +3,7 @@ project(tracking)
 
 
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-std=c++11")
-
+set(CMAKE_CXX_FLAGS "-std=c++11 -O")
 
 
 find_package(PkgConfig)
@@ -14,18 +13,16 @@ if (NOT PC_OPENNI2_FOUND)
   pkg_check_modules(PC_OPENNI2 REQUIRED openni2)
 endif()
 
-list (APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
 
-
-find_package (Eigen REQUIRED)
+find_package(Eigen REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
 
 
-
 link_directories(${PC_OPENNI2_LIBRARY_DIRS})
-include_directories (include ${CERES_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR} ${PC_OPENNI2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
+include_directories(include ${CERES_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR} ${PC_OPENNI2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 file(GLOB SRCFILES src/*.cpp)
 add_executable(tracking ${SRCFILES})
