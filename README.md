@@ -21,9 +21,10 @@ Colored Sphere Tracking depends on:
 - [Ceres Solver](http://ceres-solver.org)
 
 Colored Sphere Tracking uses [CMake](http://www.cmake.org) for building, therefore run:
+
 1. `mkdir build && cd build`
-2. `cmake ..``
-3. `make`
+- `cmake ..``
+- `make`
 
 
 
