@@ -1,13 +1,13 @@
 # Colored Sphere Tracking
 
-This software uses a Kinect (or Asus Xtion Pro) and colored spheres to estimate the pose of a robot. 
+This software uses a Kinect (or Asus Xtion Pro) and colored spheres to estimate the pose of an object. 
 
-Following steps are roughly used for tracking:
+The algorithm processes following steps:
 - Background subtraction (in /calibration directory, a new background is taken with 'p')
 - Detection of colored regions using a HSV color filter
 - Detection of spheres with Hough circles algorithm
 - Error correction using the depth and hough radius and known sphere size
-- Likelihood filter
+- Likelihood filter for better estimation
 - Pose calculation from a number of detected sphere positions.
 
 
@@ -15,20 +15,21 @@ Following steps are roughly used for tracking:
 ## Installation
 
 Colored Sphere Tracking depends on:
-- Eigen3
-- OpenNI2
-- OpenCV 3 (with OpenNI2 support, can be enabled in build step)
+- [OpenNI 2](http://structure.io/openni)
+- [OpenCV](http://opencv.org) (with OpenNI 2 support, this needs to be enabled in build step)
+- [Eigen](http://eigen.tuxfamily.org)
+- [Ceres Solver](http://ceres-solver.org)
 
-It is compiled with `CMake`, running:
+Colored Sphere Tracking uses `CMake` for building, therefore run:
 - mkdir build && cd build
 - cmake ..
 - make
 
 
 
-## Development
+## Contribution
 
-[ROS C++ Coding Style](http://wiki.ros.org/CppStyleGuide)
+Colored Sphere Tracking follows the [ROS C++ Coding Style](http://wiki.ros.org/CppStyleGuide).
 
 
 
