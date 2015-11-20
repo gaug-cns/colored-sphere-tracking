@@ -23,7 +23,7 @@ Colored Sphere Tracking depends on:
 Colored Sphere Tracking uses [CMake](http://www.cmake.org) for building, therefore run:
 
 1. `mkdir build && cd build`
-- `cmake ..``
+- `cmake ..`
 - `make`
 
 
