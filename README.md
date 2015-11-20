@@ -11,7 +11,6 @@ The algorithm processes following steps:
 - Pose calculation from a number of detected sphere positions.
 
 
-
 ## Installation
 
 Colored Sphere Tracking depends on:
@@ -27,13 +26,16 @@ Colored Sphere Tracking uses [CMake](http://www.cmake.org) for building, therefo
 - `make`
 
 
-
 ## Contribution
 
 Colored Sphere Tracking follows the [ROS C++ Coding Style](http://wiki.ros.org/CppStyleGuide).
 
 
-
 ## License
 
-Colored Sphere Tracking is released with a BSD license. For full terms and conditions, see the LICENSE file.
+Colored Sphere Tracking is released with a BSD license. For full terms and conditions, see the [LICENSE](https://github.com/gaug-cns/colored-sphere-tracking/blob/master/LICENSE) file.
+
+
+## Authors
+
+See [AUTHORS.md](https://github.com/gaug-cns/colored-sphere-tracking/blob/master/AUTHORS.md) for a full list of contributors.
