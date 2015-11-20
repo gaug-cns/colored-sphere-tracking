@@ -3,7 +3,7 @@
 This software uses a Kinect (or Asus Xtion Pro) and colored spheres to estimate the pose of an object. 
 
 The algorithm processes following steps:
-- Background subtraction (in /calibration directory, a new background is taken with 'p')
+- Background subtraction (in /calibration directory, a new background is taken with `p`)
 - Detection of colored regions using a HSV color filter
 - Detection of spheres with Hough circles algorithm
 - Error correction using the depth and hough radius and known sphere size
