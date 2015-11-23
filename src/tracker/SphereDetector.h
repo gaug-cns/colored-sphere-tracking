@@ -12,7 +12,7 @@ public:
     SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame, 
         float ball_radius, float camera_x_angle, float camera_f, 
         std::string background_image_dir, std::string depth_background_image_dir) : 
-        size(size), ball_radius(ball_radius), camera_x_angle(camera_x_angle), camera_f(camera_f)
+        size(size), ball_radius(ball_radius), camera_x_angle(camera_x_angle), camera_f(camera_f), background_image_dir(background_image_dir), depth_background_image_dir(depth_background_image_dir)
     {
         background = cv::imread(background_image_dir, 1);
         depth_background = cv::imread(depth_background_image_dir, 1);
@@ -136,8 +136,8 @@ public:
     
     void saveBackground(cv::Mat frame, cv::Mat depth_frame)
     {
-        cv::imwrite(BACKGROUND_IMAGE_DIR, frame);
-        cv::imwrite(DEPTH_BACKGROUND_IMAGE_DIR, depth_frame);
+        cv::imwrite(background_image_dir, frame);
+        cv::imwrite(depth_background_image_dir, depth_frame);
         background = frame;
         depth_background = depth_frame;
         std::cout << "Calibration image saved." << std::endl;
@@ -154,6 +154,9 @@ private:
     float ball_radius;
     float camera_x_angle;
     float camera_f;
+    
+    std::string background_image_dir;
+    std::string depth_background_image_dir;
     
     
     cv::Mat inHSVRange(cv::Mat frame, std::vector<int> color_range)
