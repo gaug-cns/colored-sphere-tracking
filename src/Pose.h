@@ -25,11 +25,10 @@ struct Pose
     
     Pose operator-(const Pose &r)
     {
-        Pose result = {
-            position - r.position,
-            orientation - r.orientation,
-            time - r.time
-        };
+        Pose result = Pose();
+        result.position = position - r.position;
+        result.orientation = orientation - r.orientation;
+        result.time = time - r.time;
         return result;
     }
 };
