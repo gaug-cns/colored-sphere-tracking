@@ -104,14 +104,16 @@ int main(int argc, char *argv[])
     
     // Open INI model file
     std::ifstream model_file(model_path);
-    buffer << model_file.rdbuf();
+    std::stringstream model_buffer;
+    model_buffer << model_file.rdbuf();
     
     // INI parser
-    INI::Parser model_p(buffer);
-    model_p.dump(out);
-    config = model_p.top();
+    INI::Parser model_p(model_buffer);
+    std::stringstream model_out;
+    model_p.dump(model_out);
+    model_config = model_p.top();
     
-    int number_spheres = std::stoi(config["number_spheres"]);
+    int number_spheres = std::stoi(model_config["number_spheres"]);
     
     
     std::cout << number_spheres << std::endl;
