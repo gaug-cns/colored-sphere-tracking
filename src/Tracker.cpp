@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
     save_image_dir = config["save_image_dir"];
     tracking_data_dir = config["tracking_data_dir"];
     
+    std::cout << size << std::endl;
     
     // Open INI model file
     std::ifstream model_file(model_path);
