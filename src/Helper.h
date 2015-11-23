@@ -19,7 +19,6 @@
 #define CAMERA_X_ANGLE 44.5 * M_PI / 180. // [rad], 0 rad -> horizontal, pi/2 -> vertical down
 #define CAMERA_F 525. // a.u.
 
-
 #define BACKGROUND_IMAGE_DIR "../calibration/background.jpg"
 #define DEPTH_BACKGROUND_IMAGE_DIR "../calibration/depth_background.jpg"
 #define SAVE_IMAGE_DIR "../calibration/shot.jpg"
@@ -34,17 +33,6 @@ enum Color
 	Blue
 };
 
-struct Sphere
-{
-    Color color;
-    Eigen::Vector3f position;
-	
-	Sphere(Eigen::Vector3f position, Color color) : position(position), color(color) {};
-    Sphere(float x, float y, float z, Color color) : color(color) {
-        position << x, y, z;
-    };
-};
-
 
 int getTime()
 {
@@ -52,4 +40,4 @@ int getTime()
     return ms.count();
 }
 
-#endif
+#endif /* _HELPER_H_ */

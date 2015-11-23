@@ -15,6 +15,9 @@
 
 #include "Helper.h"
 #include "Pose.h"
+#include "Sphere.h"
+
+
 
 struct ErrorModel
 {

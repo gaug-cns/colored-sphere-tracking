@@ -6,6 +6,8 @@
 #include "ceres/rotation.h"
 
 #include "Helper.h"
+#include "Measurement.h"
+#include "Sphere.h"
 
 
 

@@ -5,6 +5,8 @@
 #include "SphereDetector.h"
 #include "SphereFilters.h"
 #include "PoseEstimator.h"
+#include "Sphere.h"
+
 
 
 // Save pose and time data in txt file
