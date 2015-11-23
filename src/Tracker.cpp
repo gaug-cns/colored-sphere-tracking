@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     INI::Parser model_p(model_buffer);
     std::stringstream model_out;
     model_p.dump(model_out);
-    model_config = model_p.top();
+    auto model_config = model_p.top();
     
     int number_spheres = std::stoi(model_config["number_spheres"]);
     
