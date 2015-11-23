@@ -2,6 +2,9 @@
 #define _SPHERE_DETECTOR_H_
 
 #include "Helper.h"
+#include "Sphere.h"
+#include "Measurement.h"
+
 
 
 class SphereDetector
