@@ -1,7 +1,10 @@
 #ifndef _MEASUREMENT_H_
 #define _MEASUREMENT_H_
 
+#include <math.h>
+
 #include <Eigen/Dense>
+
 
 
 struct Measurement
@@ -15,7 +18,7 @@ struct Measurement
     
     void calculate(float T)
     {
-        maximum = probability * time_factor(T) * pow(2 * PI * pow(sigma, 2), -0.5);
+        maximum = probability * time_factor(T) * pow(2 * M_PI * pow(sigma, 2), -0.5);
     }
     
     bool operator < (const Measurement& m) const

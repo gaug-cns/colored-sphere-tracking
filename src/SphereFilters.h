@@ -52,7 +52,7 @@ private:
 class LikelihoodFilter
 {    
 public:
-    LikelihoodFilter(Color color, sigma_accuracy) : color(color), certainty(0.), sigma_accuracy(sigma_accuracy)
+    LikelihoodFilter(Color color, float sigma_accuracy) : color(color), certainty(0.), sigma_accuracy(sigma_accuracy)
     {
         position = Eigen::Vector3f::Zero();
         history = {};
