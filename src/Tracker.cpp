@@ -106,9 +106,9 @@ int main(int argc, char *argv[])
     buffer << model_file.rdbuf();
     
     // INI parser
-    p = INI::Parser(buffer);
-    p.dump(out);
-    config = p.top();
+    INI::Parser model_p(buffer);
+    model_p.dump(out);
+    config = model_p.top();
     
     int number_spheres = std::stoi(config["number_spheres"]);
     
