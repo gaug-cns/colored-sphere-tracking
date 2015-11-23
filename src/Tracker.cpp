@@ -102,8 +102,8 @@ int main(int argc, char *argv[])
     
     
     // Open INI model file
-    file = std::ifstream(model_path);
-    buffer << file.rdbuf();
+    std::ifstream model_file(model_path);
+    buffer << model_file.rdbuf();
     
     // INI parser
     p = INI::Parser(buffer);
