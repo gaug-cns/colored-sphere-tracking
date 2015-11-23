@@ -21,8 +21,9 @@ cv::Size size = cv::Size(640, 480); // [px]
 
 #define BACKGROUND_IMAGE_DIR "../calibration/background.jpg"
 #define DEPTH_BACKGROUND_IMAGE_DIR "../calibration/depth_background.jpg"
-#define SAVE_IMAGE_DIR "../calibration/shot.jpg"
-#define TRACKING_DATA_DIR "../tracking_data.txt"
+
+std::string save_image_dir = "../calibration/shot.jpg";
+std::string tracking_data_dir = "../tracking_data.txt";
 
 
 enum Color
@@ -53,7 +54,7 @@ double getTime()
 void saveTrackingData(std::vector<Pose> pose_history)
 {
     std::ofstream myfile;
-    myfile.open(TRACKING_DATA_DIR);
+    myfile.open(tracking_data_dir);
     
     myfile << "t[s],x[m],y[m],z[m],roll[rad],pitch[rad],yaw[rad]" << std::endl;
     for (auto pose : pose_history)
@@ -280,7 +281,7 @@ int main(int argc, char *argv[])
                 
             case 's':
                 std::cout << "Frame saved." << std::endl;
-                cv::imwrite(SAVE_IMAGE_DIR, frame_info);
+                cv::imwrite(save_image_dir, frame_info);
                 break;
                 
             case 'c':

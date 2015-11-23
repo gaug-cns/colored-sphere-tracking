@@ -9,7 +9,7 @@
 class SphereDetector
 {    
 public:
-    SphereDetector(cv::Size sizem cv::Mat frame, cv::Mat depth_frame) : size(size)
+    SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame) : size(size)
     {
         background = cv::imread(BACKGROUND_IMAGE_DIR, 1);
         depth_background = cv::imread(DEPTH_BACKGROUND_IMAGE_DIR, 1);
