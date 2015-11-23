@@ -15,7 +15,7 @@ struct Measurement
     
     void calculate(float T)
     {
-        maximum = probability * time_factor(T) * pow(2 * PI * SQUARE(sigma), -0.5);
+        maximum = probability * time_factor(T) * pow(2 * PI * pow(sigma, 2), -0.5);
     }
     
     bool operator < (const Measurement& m) const

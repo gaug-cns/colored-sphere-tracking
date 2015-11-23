@@ -2,10 +2,11 @@
 
 
 #include "Helper.h"
+#include "Sphere.h"
+#include "Pose.h"
 #include "SphereDetector.h"
 #include "SphereFilters.h"
 #include "PoseEstimator.h"
-#include "Sphere.h"
 
 
 
