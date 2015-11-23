@@ -27,9 +27,8 @@ float ball_radius = 0.03; // [m]
 float camera_x_angle = 44.5 * M_PI / 180; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
 float camera_f = 525.; // [a.u.]
 
-#define BACKGROUND_IMAGE_DIR "../calibration/background.jpg"
-#define DEPTH_BACKGROUND_IMAGE_DIR "../calibration/depth_background.jpg"
-
+std::string background_image_dir = "../calibration/background.jpg";
+std::string depth_background_image_dir = "../calibration/depth_background.jpg";
 std::string save_image_dir = "../calibration/shot.jpg";
 std::string tracking_data_dir = "../tracking_data.txt";
 
@@ -178,7 +177,7 @@ int main(int argc, char *argv[])
     
     
     // Init sphere detector
-    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, ball_radius, camera_x_angle, camera_f);
+    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, ball_radius, camera_x_angle, camera_f, background_image_dir, depth_background_image_dir);
     SphereFilters sphere_filters = SphereFilters();
     PoseEstimator pose_estimator = PoseEstimator();
     

@@ -9,11 +9,13 @@
 class SphereDetector
 {    
 public:
-    SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame, float ball_radius, float camera_x_angle, float camera_f) : 
+    SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame, 
+        float ball_radius, float camera_x_angle, float camera_f, 
+        std::string background_image_dir, std::string depth_background_image_dir) : 
         size(size), ball_radius(ball_radius), camera_x_angle(camera_x_angle), camera_f(camera_f)
     {
-        background = cv::imread(BACKGROUND_IMAGE_DIR, 1);
-        depth_background = cv::imread(DEPTH_BACKGROUND_IMAGE_DIR, 1);
+        background = cv::imread(background_image_dir, 1);
+        depth_background = cv::imread(depth_background_image_dir, 1);
         if ( !background.data || !depth_background.data )
             saveBackground(frame, depth_frame);
         
