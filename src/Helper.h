@@ -34,10 +34,10 @@ enum Color
 };
 
 
-int getTime()
+double getTime()
 {
     std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds> ( std::chrono::system_clock::now().time_since_epoch() );
-    return ms.count();
+    return ((double)ms.count()) / 1000;
 }
 
 #endif /* _HELPER_H_ */

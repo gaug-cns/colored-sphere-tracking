@@ -28,10 +28,10 @@ public:
         gradient[2] = 0;
         for (auto m : measurements)
         {
-            const double norm = sqrt( pow(x - m.mean(0), 2) + pow(y - m.mean(1), 2) + pow(z - m.mean(2), 2) );
-            if ( norm < sigma_accuracy * m.sigma)
+            const double norm_squared = pow(x - m.mean(0), 2) + pow(y - m.mean(1), 2) + pow(z - m.mean(2), 2);
+            if ( sqrt(norm_squared) < sigma_accuracy * m.sigma)
             {
-                double temp = m.maximum * exp( - (pow(x - m.mean(0), 2) + pow(y - m.mean(1), 2) + pow(z - m.mean(2), 2)) / (2 * pow(m.sigma, 2)) );
+                double temp = m.maximum * exp( - norm_squared / (2 * pow(m.sigma, 2)) );
                 cost[0] -= temp;
                 gradient[0] -= (m.mean(0) - x) / pow(m.sigma, 2) * temp;
                 gradient[1] -= (m.mean(1) - y) / pow(m.sigma, 2) * temp;
@@ -41,7 +41,10 @@ public:
         return true;
     }
     
-    virtual int NumParameters() const { return 3; }
+    virtual int NumParameters() const
+    {
+        return 3; 
+    }
     
 private:
     std::vector<Measurement> measurements;
@@ -100,6 +103,7 @@ public:
                 break;
             }
         }
+        
         std::vector<Measurement> initials(history.begin() + index_sum_maximum, history.end());
         if (1 == initials.size())
         {
@@ -159,7 +163,7 @@ public:
     
     bool isTracked()
     {
-        return (certainty > 1.0);
+        return (1. < certainty);
     }
 
 
@@ -188,7 +192,7 @@ private:
         ceres::GradientProblemSolver::Options options;
         ceres::GradientProblemSolver::Summary summary;
         
-        double parameters[3] = { start_position(0), start_position(1), start_position(2)};
+        double parameters[3] = { start_position(0), start_position(1), start_position(2) };
         double cost[1];
         double gradient[1];
         ceres::Solve(options, problem, parameters, &summary);

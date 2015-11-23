@@ -14,21 +14,19 @@
 void saveTrackingData(std::vector<Pose> pose_history)
 {
     std::ofstream myfile;
-    myfile.open (TRACKING_DATA_DIR);
+    myfile.open(TRACKING_DATA_DIR);
     
     myfile << "t[s],x[m],y[m],z[m],roll[rad],pitch[rad],yaw[rad]" << std::endl;
-    
     for (auto pose : pose_history)
     {
-        myfile << ((float)pose.time) / 1000
-            << "," << pose.position(0)
-            << "," << pose.position(1) << ","
-            << pose.position(2) << ","
-            << pose.orientation(0) << ","
-            << pose.orientation(1) << ","
-            << pose.orientation(2) << std::endl;
+        myfile << pose.time << ","
+            << pose.position(X) << ","
+            << pose.position(Y) << ","
+            << pose.position(Z) << ","
+            << pose.orientation(ROLL) << ","
+            << pose.orientation(PITCH) << ","
+            << pose.orientation(YAW) << std::endl;
     }
-    
     myfile.close();
     
     std::cout << "File saved. It will be overwritten if it is not renamed." << std::endl;
@@ -65,7 +63,7 @@ int main(int argc, char *argv[])
     	mode.setFps(30);
     	mode.setPixelFormat(PIXEL_FORMAT_DEPTH_1_MM);
 
-    	if ( depth_stream.setVideoMode(mode) != STATUS_OK )
+    	if (STATUS_OK != depth_stream.setVideoMode(mode))
     		std::cout << "Can't apply VideoMode: " << OpenNI::getExtendedError() << std::endl;
     }
     else
@@ -86,7 +84,7 @@ int main(int argc, char *argv[])
     		mode.setFps(30);
     		mode.setPixelFormat(PIXEL_FORMAT_RGB888);
             
-    		if (color_stream.setVideoMode(mode) != STATUS_OK)
+    		if (STATUS_OK != color_stream.setVideoMode(mode))
         		std::cout << "Can't apply VideoMode: " << OpenNI::getExtendedError() << std::endl;
                 
     		// 4b. image registration
@@ -120,12 +118,12 @@ int main(int argc, char *argv[])
     // Read first frame
     if (STATUS_OK != color_stream.readFrame(&color_frame))
     {
-        std::cerr << "Can't read color frame'" << std::endl;
+        std::cerr << "Can't read color frame." << std::endl;
         return -1;
     }
     if (STATUS_OK != depth_stream.readFrame(&depth_frame))
     {
-        std::cerr << "Can't read depth frame'" << std::endl;
+        std::cerr << "Can't read depth frame." << std::endl;
         return -1;
     }
     const cv::Mat color_frame_temp( color_frame.getHeight(), color_frame.getWidth(), CV_8UC3, (void*)color_frame.getData() );
@@ -197,9 +195,9 @@ int main(int argc, char *argv[])
         
         
         // Get current time and time difference
-        int last_time = current_time; // [ms]
-        current_time = getTime(); // [ms]
-        float delta_time = (float)(current_time - last_time) / 1e3; // [s]
+        double last_time = current_time; // [s]
+        current_time = getTime(); // [s]
+        double delta_time = current_time - last_time; // [s]
         
 
         // Detect spheres

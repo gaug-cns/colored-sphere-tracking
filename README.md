@@ -1,6 +1,6 @@
 # Colored Sphere Tracking
 
-This software uses a Kinect (or Asus Xtion Pro) and colored spheres to estimate the pose of an object. 
+Using a 3D sensing camera (like Microsoft Kinect or Asus Xtion Pro) and colored spheres to estimate the pose of an object. 
 
 The algorithm processes following steps:
 - Background subtraction (in /calibration directory, a new background is taken with `p`)
