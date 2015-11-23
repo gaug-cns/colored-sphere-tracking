@@ -125,12 +125,10 @@ int main(int argc, char *argv[])
     {
         std::string raw = "sphere_" + std::to_string(i) + "_";
         std::string color = model_config[raw + "color"];
-        
-        std::cout << raw << " " << std::endl;
-        
-        float x = std::stof(config[raw + "x"]);
-        float y = std::stof(config[raw + "y"]);
-        float z = std::stof(config[raw + "z"]);
+
+        float x = std::stof(model_config[raw + "x"]);
+        float y = std::stof(model_config[raw + "y"]);
+        float z = std::stof(model_config[raw + "z"]);
         
         copter.push_back( Sphere(x, y, z, names_color[color]) );
     }
