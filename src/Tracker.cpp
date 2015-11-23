@@ -42,7 +42,6 @@ double getTime()
 }
 
 
-#include "tracker/Helper.h"
 #include "tracker/Sphere.h"
 #include "tracker/Pose.h"
 #include "tracker/SphereDetector.h"
