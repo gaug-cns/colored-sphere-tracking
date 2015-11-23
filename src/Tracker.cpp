@@ -114,22 +114,25 @@ int main(int argc, char *argv[])
     
     int number_spheres = std::stoi(model_config["number_spheres"]);
     
-    std::map<std::string, Color> m;
-    m["green"] = Green;
-    m["red"] = Red;
-    m["yellow"] = Yellow;
-    m["blue"] = Blue;
+    std::map<std::string, Color> names_color;
+    names_color["green"] = Green;
+    names_color["red"] = Red;
+    names_color["yellow"] = Yellow;
+    names_color["blue"] = Blue;
     
     std::vector<Sphere> copter;
     for (int i = 0; i < number_spheres; i++)
     {
         std::string raw = "sphere_" + std::to_string(i) + "_";
         std::string color = model_config[raw + "color"];
+        
+        std::cout << raw << " " << std::endl;
+        
         float x = std::stof(config[raw + "x"]);
         float y = std::stof(config[raw + "y"]);
         float z = std::stof(config[raw + "z"]);
         
-        copter.push_back( Sphere(x, y, z, m[color]) );
+        copter.push_back( Sphere(x, y, z, names_color[color]) );
     }
     
     
