@@ -9,7 +9,8 @@
 class SphereDetector
 {    
 public:
-    SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame) : size(size)
+    SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame, float ball_radius, float camera_x_angle, float camera_f) : 
+        size(size), ball_radius(ball_radius), camera_x_angle(camera_x_angle), camera_f(camera_f)
     {
         background = cv::imread(BACKGROUND_IMAGE_DIR, 1);
         depth_background = cv::imread(DEPTH_BACKGROUND_IMAGE_DIR, 1);
@@ -94,10 +95,10 @@ public:
                 int y = cvRound(circle[1]);
                 int r = cvRound(circle[2]);
                 
-                float d = 10. / 255. * (float)depth_frame.at<unsigned char>(y, x) + BALL_RADIUS;
+                float d = 10. / 255. * (float)depth_frame.at<unsigned char>(y, x) + ball_radius;
                 
                 float r_detected = r;
-                float r_expected = CAMERA_F / d * BALL_RADIUS;
+                float r_expected = camera_f / d * ball_radius;
                 
                 // Check if radius of circle detection is coherant with the depth
                 if (r_detected / r_expected > min_radius_deviation && r_detected / r_expected < max_radius_deviation)
@@ -147,6 +148,11 @@ private:
     cv::Mat background;
     cv::Mat depth_background;
     cv::Size size;
+    
+    float ball_radius;
+    float camera_x_angle;
+    float camera_f;
+    
     
     cv::Mat inHSVRange(cv::Mat frame, std::vector<int> color_range)
     {
@@ -219,12 +225,12 @@ private:
         return diff_threshold;
     } */
     
-    Eigen::Matrix3f getRotation(float x_angle)
+    Eigen::Matrix3f getRotation(float roll)
     {
         Eigen::Matrix3f rotation;
         rotation << 1, 0, 0,
-            0, cos(CAMERA_X_ANGLE), sin(CAMERA_X_ANGLE),
-            0, - sin(CAMERA_X_ANGLE), cos(CAMERA_X_ANGLE);
+            0, cos(roll), sin(roll),
+            0, - sin(roll), cos(roll);
             
         return rotation;
     }
@@ -232,22 +238,22 @@ private:
     Eigen::Vector3f globalFromImageCoordinates(float cx, float cy, float d)
     {
         Eigen::Vector3f position;
-        position(0) = 1. / CAMERA_F * d * ( cx - size.width / 2 );
+        position(0) = 1. / camera_f * d * ( cx - size.width / 2 );
         position(1) = d;
-        position(2) = -1. / CAMERA_F * d * ( cy - size.height / 2 );
+        position(2) = -1. / camera_f * d * ( cy - size.height / 2 );
         
-        Eigen::Vector3f transformed = getRotation(CAMERA_X_ANGLE) * position;
+        Eigen::Vector3f transformed = getRotation(camera_x_angle) * position;
         return transformed;
     }
     
     std::vector<float> getCircleDrawingFromPosition(Eigen::Vector3f position)
     {
-        Eigen::Vector3f transformed = getRotation(CAMERA_X_ANGLE) * position;
+        Eigen::Vector3f transformed = getRotation(camera_x_angle) * position;
         
         float d = transformed(1);
-        float image_x = CAMERA_F / d * transformed(0) + size.width / 2;
-        float image_y = - CAMERA_F / d * transformed(2) + size.height / 2;
-        float image_radius = CAMERA_F * BALL_RADIUS / d;
+        float image_x = camera_f / d * transformed(0) + size.width / 2;
+        float image_y = - camera_f / d * transformed(2) + size.height / 2;
+        float image_radius = camera_f * ball_radius / d;
         
         std::vector<float> circle;
         circle.push_back(image_x);

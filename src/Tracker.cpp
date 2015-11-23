@@ -13,11 +13,19 @@
 #include "ini.hpp"
 
 
+enum Color
+{
+	Red,
+	Green,
+	Yellow,
+	Blue
+};
+
 cv::Size size = cv::Size(640, 480); // [px]
 
-#define BALL_RADIUS 0.03 // [m]
-#define CAMERA_X_ANGLE 44.5 * M_PI / 180. // [rad], 0 rad -> horizontal, pi/2 -> vertical down
-#define CAMERA_F 525. // a.u.
+float ball_radius = 0.03; // [m]
+float camera_x_angle = 44.5 * M_PI / 180; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
+float camera_f = 525.; // [a.u.]
 
 #define BACKGROUND_IMAGE_DIR "../calibration/background.jpg"
 #define DEPTH_BACKGROUND_IMAGE_DIR "../calibration/depth_background.jpg"
@@ -26,13 +34,7 @@ std::string save_image_dir = "../calibration/shot.jpg";
 std::string tracking_data_dir = "../tracking_data.txt";
 
 
-enum Color
-{
-	Red,
-	Green,
-	Yellow,
-	Blue
-};
+
 
 
 double getTime()
@@ -176,7 +178,7 @@ int main(int argc, char *argv[])
     
     
     // Init sphere detector
-    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp);
+    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, ball_radius, camera_x_angle, camera_f);
     SphereFilters sphere_filters = SphereFilters();
     PoseEstimator pose_estimator = PoseEstimator();
     
