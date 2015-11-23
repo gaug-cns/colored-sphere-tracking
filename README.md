@@ -3,11 +3,11 @@
 Using a 3D sensing camera (like Microsoft Kinect or Asus Xtion Pro) and colored spheres to estimate the pose of an object. 
 
 The algorithm processes following steps:
-- Background subtraction (in /calibration directory, a new background is taken with `p`)
-- Detection of colored regions using a HSV color filter
-- Detection of spheres with Hough circles algorithm
-- Error correction using the depth and hough radius and known sphere size
-- Likelihood filter for better estimation
+- Background subtraction (in /calibration directory, a new background is taken with `p`).
+- Detection of colored regions using a HSV color filter.
+- Detection of spheres with Hough circles algorithm.
+- Error correction using the depth and hough radius and known sphere size.
+- Likelihood filter for advanced error correction and better estimation.
 - Pose calculation from a number of detected sphere positions.
 
 
@@ -24,6 +24,11 @@ Colored Sphere Tracking uses [CMake](http://www.cmake.org) for building, therefo
 1. `mkdir build && cd build`
 - `cmake ..`
 - `make`
+
+
+## Usage
+
+A model consists of the colors and positions of the used spheres. The [FlyPi Model](https://github.com/gaug-cns/colored-sphere-tracking/blob/master/models/flypi.ini) file shows the implementation.
 
 
 ## Contribution
