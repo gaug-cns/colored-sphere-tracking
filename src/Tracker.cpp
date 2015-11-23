@@ -229,21 +229,14 @@ int main(int argc, char *argv[])
     
     const cv::Mat depth_frame_temp( depth_frame.getHeight(), depth_frame.getWidth(), CV_16UC1, (void*)depth_frame.getData() );
     cv::Mat frame_depth_temp;
-    depth_frame_temp.convertTo(frame_depth_temp, CV_8U, 255.0 / max_depth);
+    depth_frame_temp.convertTo(frame_depth_temp, CV_8U, 255. / max_depth);
     
     
     // Init sphere detector
     SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, ball_radius, camera_x_angle, camera_f, background_image_dir, depth_background_image_dir);
     SphereFilters sphere_filters = SphereFilters();
     PoseEstimator pose_estimator = PoseEstimator();
-    
-    
-    // Model for pose estimation, FlyPi Quadcopter
-    float diameter = 0.75; // [m]
-    float heigth = 0.08; // [m]
-    
-    
-    
+
     // Init calibration pose and time
     Pose calibration_pose;
     calibration_pose.position = Eigen::Vector3f::Zero();
@@ -284,7 +277,7 @@ int main(int argc, char *argv[])
         
     	const cv::Mat depth_frame_temp( depth_frame.getHeight(), depth_frame.getWidth(), CV_16UC1, (void*)depth_frame.getData() );
     	cv::Mat frame_depth;
-    	depth_frame_temp.convertTo(frame_depth, CV_8U, 255.0 / max_depth);
+    	depth_frame_temp.convertTo(frame_depth, CV_8U, 255. / max_depth);
         
         
         // Get current time and time difference
@@ -309,11 +302,6 @@ int main(int argc, char *argv[])
         
         
         // Calculate pose
-        /* Eigen::Vector3f pose_position, pose_orientation;
-        pose_position << 0, 0, 0;
-        pose_orientation << 0, 0, 0;
-        Pose pose = {pose_position, pose_orientation, current_time}; */
-        
         Pose pose = pose_estimator.getPoseFromModel(copter, tracked_spheres);
         pose.time = current_time;
         if (tracked_spheres.size() >= 3)

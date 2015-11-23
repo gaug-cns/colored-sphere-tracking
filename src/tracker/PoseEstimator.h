@@ -17,26 +17,25 @@
 #include "Sphere.h"
 
 
-
 struct ErrorModel
 {
-	ErrorModel(Eigen::Vector3f point_model, Eigen::Vector3f point_measurement): point_model(point_model), point_measurement(point_measurement) {};
+	ErrorModel(Eigen::Vector3f model_v, Eigen::Vector3f measurement_v): model_v(model_v), measurement_v(measurement_v) { };
 	
 	template <typename T> bool operator() (const T* const pose, T* residual) const
 	{
-		T model[3] = { T(point_model(0)), T(point_model(1)), T(point_model(2)) };
-		T measurement[3] = { T(point_measurement(0)), T(point_measurement(1)), T(point_measurement(2)) };
+		T model[3] = { T(model_v(0)), T(model_v(1)), T(model_v(2)) };
+		T measurement[3] = { T(measurement_v(0)), T(measurement_v(1)), T(measurement_v(2)) };
 		
-		T model_angles[3] = {pose[3], pose[4], pose[5]};
-		T rotation_matrix_model[9];
-		ceres::EulerAnglesToRotationMatrix(model_angles, 3, rotation_matrix_model);
+		T euler[3] = {pose[3], pose[4], pose[5]};
+		T rotation_matrix[9];
+		ceres::EulerAnglesToRotationMatrix(euler, 3, rotation_matrix);
 		
 		T model_rotated[3];
-		dot(rotation_matrix_model, model, model_rotated);
+		dot(rotation_matrix, model, model_rotated);
 		
-		residual[0] = measurement[0] - model_rotated[0] - pose[0];
-		residual[1] = measurement[1] - model_rotated[1] - pose[1];
-		residual[2] = measurement[2] - model_rotated[2] - pose[2];
+		residual[0] = pose[0] + model_rotated[0] - measurement[0];
+		residual[1] = pose[1] + model_rotated[1] - measurement[1];
+		residual[2] = pose[2] + model_rotated[2] - measurement[2];
 		return true;
 	}
 	
@@ -47,9 +46,9 @@ struct ErrorModel
 		result[2] = matrix[6] * vector[0] + matrix[7] * vector[1] + matrix[8] * vector[2];
 	}
 	
-protected:
-	Eigen::Vector3f point_model;
-	Eigen::Vector3f point_measurement;
+private:
+	Eigen::Vector3f model_v;
+	Eigen::Vector3f measurement_v;
 };
 
 

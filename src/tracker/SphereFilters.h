@@ -94,7 +94,7 @@ public:
         int index_sum_maximum = 0;
         for (int i = 0; i < history.size(); i++)
         {
-            Measurement m = history[i];
+            Measurement m = history.at(i);
             sum_maximas += m.maximum;
             if (sum_maximas > initial_maximum)
             {

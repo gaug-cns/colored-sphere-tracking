@@ -10,7 +10,7 @@ struct Sphere
     Color color;
     Eigen::Vector3f position;
 	
-	Sphere(Eigen::Vector3f position, Color color) : position(position), color(color) {};
+	Sphere(Eigen::Vector3f position, Color color) : position(position), color(color) { };
     
     Sphere(float x, float y, float z, Color color) : color(color)
     {
