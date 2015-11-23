@@ -2,7 +2,6 @@
 #define _SPHERE_H_
 
 #include <Eigen/Dense>
-#include "Helper.h"
 
 
 

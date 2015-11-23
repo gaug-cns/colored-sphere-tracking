@@ -13,7 +13,6 @@
 #include "ceres/dynamic_autodiff_cost_function.h"
 #include "ceres/rotation.h"
 
-#include "Helper.h"
 #include "Pose.h"
 #include "Sphere.h"
 
