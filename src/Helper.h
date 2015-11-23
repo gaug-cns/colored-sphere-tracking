@@ -1,9 +1,13 @@
 #ifndef _HELPER_H_
 #define _HELPER_H_
 
+#include <iostream>
+#include <fstream>
 #include <chrono>
 #include <sys/stat.h>
 #include <math.h>
+#include <vector>
+#include <map>
 
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
