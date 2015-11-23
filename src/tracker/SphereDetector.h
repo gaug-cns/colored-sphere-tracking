@@ -19,17 +19,24 @@ public:
         if ( !background.data || !depth_background.data )
             saveBackground(frame, depth_frame);
         
-        debug_color = Red;
+        // debug_color = Red;
+        
+        // Colors for drawing
+        draw_color_map[Red] = cv::Scalar(0, 0, 255);
+        draw_color_map[Green] = cv::Scalar(0, 255, 0);
+        draw_color_map[Yellow] = cv::Scalar(0, 255, 255);
+        draw_color_map[Blue] = cv::Scalar(255, 0, 0);
+        
+        // Colors for detection
+        // hue, hue_range, min saturation, min value, max saturation, max value
+        color_map[Red] = {0, 10, 160, 70, 255, 255};
+        color_map[Green] = {58, 16, 130, 80, 255, 255};
+        color_map[Yellow] = {24, 12, 130, 150, 255, 255};
+        color_map[Blue] = {110, 24, 100, 50, 255, 255};
     }
     
     void showSpheres(std::vector<Sphere> spheres, cv::Mat frame)
     {
-        std::map<Color, cv::Scalar> color_map;
-        color_map[Red] = cv::Scalar(0, 0, 255);
-        color_map[Green] = cv::Scalar(0, 255, 0);
-        color_map[Yellow] = cv::Scalar(0, 255, 255);
-        color_map[Blue] = cv::Scalar(255, 0, 0);
-        
         for (auto sphere : spheres)
         {
            
@@ -38,21 +45,13 @@ public:
             int radius = circle[2];
             
             if (radius > 0)
-                cv::circle(frame, center, radius, color_map[sphere.color], 2, 8, 0);
+                cv::circle(frame, center, radius, draw_color_map[sphere.color], 2, 8, 0);
         }
         cv::imshow("final spheres", frame);
     }
     
     std::vector<Measurement> findSpheres(cv::Mat frame, cv::Mat depth_frame, float time)
     {
-        // Colors for detection
-        // hue, hue_range, min saturation, min value, max saturation, max value
-        std::map<Color, std::vector<int>> color_map;
-        color_map[Red] = {0, 10, 160, 70, 255, 255};
-        color_map[Green] = {58, 16, 130, 80, 255, 255};
-        color_map[Yellow] = {24, 12, 130, 150, 255, 255};
-        color_map[Blue] = {110, 24, 100, 50, 255, 255};
-        
         cv::Mat color_diff_threshold = getColorDifferenceBinary(frame);
         // cv::imshow("color_diff_threshold", color_diff_threshold);
         
@@ -128,7 +127,8 @@ public:
             
             result.insert(result.end(), measurements.begin(), measurements.end());
             
-            if (color == debug_color) { cv::imshow("measurements", frame); }
+            if (color == debug_color)
+                cv::imshow("measurements", frame);
         }
         
         return result;
@@ -138,8 +138,10 @@ public:
     {
         cv::imwrite(background_image_dir, frame);
         cv::imwrite(depth_background_image_dir, depth_frame);
+        
         background = frame;
         depth_background = depth_frame;
+        
         std::cout << "Calibration image saved." << std::endl;
     }
     
@@ -157,6 +159,9 @@ private:
     
     std::string background_image_dir;
     std::string depth_background_image_dir;
+    
+    std::map<Color, cv::Scalar> draw_color_map;
+    std::map<Color, std::vector<int>> color_map;
     
     
     cv::Mat inHSVRange(cv::Mat frame, std::vector<int> color_range)
@@ -266,7 +271,6 @@ private:
         circle.push_back(image_radius);
         return circle;
     }
-
 };
 
 #endif
