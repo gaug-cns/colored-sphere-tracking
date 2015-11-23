@@ -100,7 +100,6 @@ int main(int argc, char *argv[])
     save_image_dir = config["save_image_dir"];
     tracking_data_dir = config["tracking_data_dir"];
     
-    std::cout << size << std::endl;
     
     // Open INI model file
     std::ifstream model_file(model_path);
@@ -115,8 +114,23 @@ int main(int argc, char *argv[])
     
     int number_spheres = std::stoi(model_config["number_spheres"]);
     
+    std::map<std::string, Color> m;
+    m["green"] = Green;
+    m["red"] = Red;
+    m["yellow"] = Yellow;
+    m["blue"] = Blue;
     
-    std::cout << number_spheres << std::endl;
+    std::vector<Sphere> copter;
+    for (int i = 0; i < number_spheres; i++)
+    {
+        std::string raw = "sphere_" + std::to_string(i) + "_";
+        std::string color = model_config[raw + "color"];
+        float x = std::stof(config[raw + "x"]);
+        float y = std::stof(config[raw + "y"]);
+        float z = std::stof(config[raw + "z"]);
+        
+        copter.push_back( Sphere(x, y, z, m[color]) );
+    }
     
     
     
@@ -226,11 +240,7 @@ int main(int argc, char *argv[])
     // Model for pose estimation, FlyPi Quadcopter
     float diameter = 0.75; // [m]
     float heigth = 0.08; // [m]
-    std::vector<Sphere> copter;
-    copter.push_back( Sphere(diameter / 2, 0, heigth, Green) ); // Front
-    copter.push_back( Sphere(0, -diameter / 2, heigth, Red) ); // Left
-    copter.push_back( Sphere(0, diameter / 2, heigth, Yellow) ); // Right
-    copter.push_back( Sphere(-diameter / 2, 0, heigth, Blue) ); // Back
+    
     
     
     // Init calibration pose and time
