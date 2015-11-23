@@ -32,6 +32,7 @@ float ball_radius; // [m]
 float camera_x_angle; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
 float camera_f; // [a.u.]
 
+std::string model_path;
 std::string background_image_dir;
 std::string depth_background_image_dir;
 std::string save_image_dir;
@@ -93,10 +94,27 @@ int main(int argc, char *argv[])
     camera_x_angle = std::stof(config["camera_x_angle"]);
     camera_f = std::stof(config["camera_f"]);
 
+    model_path = config["model_path"];
     background_image_dir = config["background_image_dir"];
     depth_background_image_dir = config["depth_background_image_dir"];
     save_image_dir = config["save_image_dir"];
     tracking_data_dir = config["tracking_data_dir"];
+    
+    
+    // Open INI model file
+    file = std::ifstream(model_path);
+    buffer << file.rdbuf();
+    
+    // INI parser
+    p = INI::Parser(buffer);
+    p.dump(out);
+    config = p.top();
+    
+    int number_spheres = std::stoi(config["number_spheres"]);
+    
+    
+    std::cout << number_spheres << std::endl;
+    
     
     
 	// Initialize OpenNI
