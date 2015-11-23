@@ -3,21 +3,12 @@
 #include <chrono>
 #include <sys/stat.h>
 #include <math.h>
-#include <vector>
-#include <map>
 
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
 #include "OpenNI.h"
 
 #include "ini.hpp"
-
-#include "tracker/Sphere.h"
-#include "tracker/Pose.h"
-#include "tracker/SphereDetector.h"
-#include "tracker/SphereFilters.h"
-#include "tracker/PoseEstimator.h"
-
 
 enum Color
 {
@@ -27,25 +18,32 @@ enum Color
 	Blue
 };
 
-cv::Size size = cv::Size(640, 480); // [px]
-
-float ball_radius = 0.03; // [m]
-float camera_x_angle = 44.5 * M_PI / 180; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
-float camera_f = 525.; // [a.u.]
-
-std::string background_image_dir = "../calibration/background.jpg";
-std::string depth_background_image_dir = "../calibration/depth_background.jpg";
-std::string save_image_dir = "../calibration/shot.jpg";
-std::string tracking_data_dir = "../tracking_data.txt";
+#include "tracker/Sphere.h"
+#include "tracker/Pose.h"
+#include "tracker/SphereDetector.h"
+#include "tracker/SphereFilters.h"
+#include "tracker/PoseEstimator.h"
 
 
+
+cv::Size size;
+
+float ball_radius; // [m]
+float camera_x_angle; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
+float camera_f; // [a.u.]
+
+std::string background_image_dir;
+std::string depth_background_image_dir;
+std::string save_image_dir;
+std::string tracking_data_dir;
+
+
+// Get current time in [s]
 double getTime()
 {
     std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds> ( std::chrono::system_clock::now().time_since_epoch() );
     return ((double)ms.count()) / 1000;
 }
-
-
 
 // Save pose and time data in txt file
 void saveTrackingData(std::vector<Pose> pose_history)
@@ -71,10 +69,36 @@ void saveTrackingData(std::vector<Pose> pose_history)
 
 
 
+
 using namespace openni;
 
 int main(int argc, char *argv[])
 {
+    // Open INI config file
+    std::ifstream file("../config.ini");
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    
+    // INI parser
+    INI::Parser p(buffer);
+    std::stringstream out;
+    p.dump(out);
+    auto config = p.top();
+    
+    int width = std::stoi(config["width"]);
+    int height = std::stoi(config["height"]);
+    size = cv::Size(width, height);
+    
+    ball_radius = std::stof(config["ball_radius"]);
+    camera_x_angle = std::stof(config["camera_x_angle"]);
+    camera_f = std::stof(config["camera_f"]);
+
+    background_image_dir = config["background_image_dir"];
+    depth_background_image_dir = config["depth_background_image_dir"];
+    save_image_dir = config["save_image_dir"];
+    tracking_data_dir = config["tracking_data_dir"];
+    
+    
 	// Initialize OpenNI
     if (STATUS_OK != OpenNI::initialize())
 	{
