@@ -12,6 +12,12 @@
 
 #include "ini.hpp"
 
+#include "tracker/Sphere.h"
+#include "tracker/Pose.h"
+#include "tracker/SphereDetector.h"
+#include "tracker/SphereFilters.h"
+#include "tracker/PoseEstimator.h"
+
 
 enum Color
 {
@@ -33,21 +39,11 @@ std::string save_image_dir = "../calibration/shot.jpg";
 std::string tracking_data_dir = "../tracking_data.txt";
 
 
-
-
-
 double getTime()
 {
     std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds> ( std::chrono::system_clock::now().time_since_epoch() );
     return ((double)ms.count()) / 1000;
 }
-
-
-#include "tracker/Sphere.h"
-#include "tracker/Pose.h"
-#include "tracker/SphereDetector.h"
-#include "tracker/SphereFilters.h"
-#include "tracker/PoseEstimator.h"
 
 
 
