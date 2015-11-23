@@ -3,6 +3,8 @@
 
 #include <Eigen/Dense>
 
+
+
 #define X 0
 #define Y 1
 #define Z 2
@@ -21,16 +23,7 @@ struct Pose
         position = Eigen::Vector3f::Zero();
         orientation = Eigen::Vector3f::Zero();
     }
-    
-    Pose operator+(const Pose &r)
-    {
-        Pose result = Pose();
-        result.position = position + r.position;
-        result.orientation = orientation + r.orientation;
-        result.time = time + r.time;
-        return result;
-    }
-    
+
     Pose operator-(const Pose &r)
     {
         Pose result = Pose();

@@ -1,12 +1,12 @@
 #include "OpenNI.h"
 
 
-#include "Helper.h"
-#include "Sphere.h"
-#include "Pose.h"
-#include "SphereDetector.h"
-#include "SphereFilters.h"
-#include "PoseEstimator.h"
+#include "tracker/Helper.h"
+#include "tracker/Sphere.h"
+#include "tracker/Pose.h"
+#include "tracker/SphereDetector.h"
+#include "tracker/SphereFilters.h"
+#include "tracker/PoseEstimator.h"
 
 
 
@@ -227,7 +227,7 @@ int main(int argc, char *argv[])
         {
             Pose pose_result = pose - calibration_pose;
             pose_history.push_back(pose_result);
-            std::cout << "X: " << pose.position(0) << " Y: " << pose.position(1) << " Z: " << pose.position(2) << " Roll: " << pose.orientation(0) << " Pitch: " << pose.orientation(1) << " Yaw: " << pose.orientation(2) << std::endl;
+            std::cout << "X: " << pose.position(X) << " Y: " << pose.position(Y) << " Z: " << pose.position(Z) << " Roll: " << pose.orientation(ROLL) << " Pitch: " << pose.orientation(PITCH) << " Yaw: " << pose.orientation(YAW) << std::endl;
         }
 
         
