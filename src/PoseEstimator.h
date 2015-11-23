@@ -72,7 +72,7 @@ public:
 			}
 		}
         
-        Eigen::VectorXd vector(6) = Eigen::VectorXd::Zero(6);
+        Eigen::VectorXd vector = Eigen::VectorXd::Zero(6);
         
         ceres::Problem problem;
         for (int i = 0; i < measurements.size(); i++)
@@ -95,9 +95,9 @@ public:
 		pose.position(X) = vector(0);
 		pose.position(Y) = vector(1);
 		pose.position(Z) = vector(2);
-		pose.rotation(ROLL) = vector(3) * 180. / M_PI;
-		pose.rotation(PITCH) = vector(4) * 180. / M_PI;
-		pose.rotation(YAW) = vector(5) * 180. / M_PI;
+		pose.orientation(ROLL) = vector(3) * 180. / M_PI;
+		pose.orientation(PITCH) = vector(4) * 180. / M_PI;
+		pose.orientation(YAW) = vector(5) * 180. / M_PI;
         return pose;
     }
 };

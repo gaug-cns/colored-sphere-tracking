@@ -20,7 +20,7 @@ struct Pose
     Pose() : time(0.)
     {
         position = Eigen::Vector3f::Zero();
-        rotation = Eigen::Vector3f::Zero();
+        orientation = Eigen::Vector3f::Zero();
     }
     
     Pose operator-(const Pose &r)
