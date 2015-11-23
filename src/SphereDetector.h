@@ -1,7 +1,7 @@
 #ifndef _SPHERE_DETECTOR_H_
 #define _SPHERE_DETECTOR_H_
 
-#include "helper.h"
+#include "Helper.h"
 
 
 class SphereDetector
@@ -82,6 +82,16 @@ private:
         return diff_threshold;
     } */
     
+    Eigen::Matrix3f getRotation(float x_angle)
+    {
+        Eigen::Matrix3f rotation;
+        rotation << 1, 0, 0,
+            0, cos(CAMERA_X_ANGLE), sin(CAMERA_X_ANGLE),
+            0, - sin(CAMERA_X_ANGLE), cos(CAMERA_X_ANGLE);
+            
+        return rotation;
+    }
+    
     Eigen::Vector3f globalFromImageCoordinates(float cx, float cy, float d)
     {
         Eigen::Vector3f position;
@@ -89,23 +99,13 @@ private:
         position(1) = d;
         position(2) = -1. / CAMERA_F * d * ( cy - HEIGHT / 2 );
         
-        Eigen::Matrix3f rotation;
-        rotation << 1, 0, 0,
-            0, cos(CAMERA_X_ANGLE), sin(CAMERA_X_ANGLE),
-            0, - sin(CAMERA_X_ANGLE), cos(CAMERA_X_ANGLE);
-        
-        Eigen::Vector3f transformed = rotation * position;
+        Eigen::Vector3f transformed = getRotation(CAMERA_X_ANGLE) * position;
         return transformed;
     }
     
     std::vector<float> getCircleDrawingFromPosition(Eigen::Vector3f position)
     {
-        Eigen::Matrix3f rotation;
-        rotation << 1, 0, 0,
-            0, cos(CAMERA_X_ANGLE), - sin(CAMERA_X_ANGLE),
-            0, sin(CAMERA_X_ANGLE), cos(CAMERA_X_ANGLE);
-        
-        Eigen::Vector3f transformed = rotation * position;
+        Eigen::Vector3f transformed = getRotation(CAMERA_X_ANGLE) * position;
         
         float d = transformed(1);
         float image_x = CAMERA_F / d * transformed(0) + WIDTH / 2;
@@ -116,7 +116,6 @@ private:
         circle.push_back(image_x);
         circle.push_back(image_y);
         circle.push_back(image_radius);
-        
         return circle;
     }
 

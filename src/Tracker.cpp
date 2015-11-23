@@ -1,7 +1,7 @@
 #include "OpenNI.h"
 
 
-#include "helper.h"
+#include "Helper.h"
 #include "SphereDetector.h"
 #include "SphereFilters.h"
 #include "PoseEstimator.h"
@@ -17,8 +17,8 @@ void saveTrackingData(std::vector<Pose> pose_history)
     
     for (auto pose : pose_history)
     {
-        myfile << ((float)pose.time) / 1000;
-        myfile << "," << pose.position(0)
+        myfile << ((float)pose.time) / 1000
+            << "," << pose.position(0)
             << "," << pose.position(1) << ","
             << pose.position(2) << ","
             << pose.orientation(0) << ","
@@ -30,7 +30,6 @@ void saveTrackingData(std::vector<Pose> pose_history)
     
     std::cout << "File saved. It will be overwritten if it is not renamed." << std::endl;
 }
-
 
 
 
@@ -47,7 +46,7 @@ int main(int argc, char *argv[])
   
 	// Open Device
     Device device;
-    if (STATUS_OK != device.open( ANY_DEVICE ))
+    if (STATUS_OK != device.open(ANY_DEVICE))
 	{
         std::cerr << "Can't Open Device: "  << OpenNI::getExtendedError() << std::endl;
     	return -1;
@@ -55,9 +54,9 @@ int main(int argc, char *argv[])
   
 	// Create depth stream
 	VideoStream depth_stream;
-    if (STATUS_OK == depth_stream.create( device, SENSOR_DEPTH ))
+    if (STATUS_OK == depth_stream.create(device, SENSOR_DEPTH))
     {
-	   // 3a. set video mode
+	    // 3a. set video mode
     	VideoMode mode;
     	mode.setResolution(WIDTH, HEIGHT);
     	mode.setFps(30);
@@ -253,7 +252,7 @@ int main(int argc, char *argv[])
                 saveTrackingData(pose_history);
                 break;
             
-                // Change debug color for further analysis
+            // Change debug color for further analysis
             case 'y': sphere_detector.debug_color = Yellow; break;
             case 'g': sphere_detector.debug_color = Green; break;
             case 'b': sphere_detector.debug_color = Blue; break;

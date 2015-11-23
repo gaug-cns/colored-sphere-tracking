@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(tracking)
+project(tracker)
 
 
 set(CMAKE_BUILD_TYPE Debug)
@@ -25,6 +25,6 @@ link_directories(${PC_OPENNI2_LIBRARY_DIRS})
 include_directories(include ${CERES_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR} ${PC_OPENNI2_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 file(GLOB SRCFILES src/*.cpp)
-add_executable(tracking ${SRCFILES})
+add_executable(tracker ${SRCFILES})
 
-target_link_libraries(tracking ${CERES_LIBRARIES} ${OpenCV_LIBS} ${PC_OPENNI2_LIBRARIES})
+target_link_libraries(tracker ${CERES_LIBRARIES} ${OpenCV_LIBS} ${PC_OPENNI2_LIBRARIES})

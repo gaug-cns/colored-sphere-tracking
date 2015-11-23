@@ -5,21 +5,14 @@
 #include "ceres/dynamic_autodiff_cost_function.h"
 #include "ceres/rotation.h"
 
-#include "helper.h"
-
-
-#define SIGMA_ACCURACY 4
-#define PI 3.1415
+#include "Helper.h"
 
 
 
 class LikelihoodField : public ceres::FirstOrderFunction
 {
-    
 public:
-    std::vector<Measurement> measurements;
-    
-    LikelihoodField(std::vector<Measurement> measurements) : measurements(measurements) { }
+    LikelihoodField(std::vector<Measurement> measurements, float sigma_accuracy) : measurements(measurements), sigma_accuracy(sigma_accuracy) { }
     
     virtual bool Evaluate(const double* parameters, double* cost, double* gradient) const
     {
@@ -33,70 +26,34 @@ public:
         gradient[2] = 0;
         for (auto m : measurements)
         {
-            const double norm = sqrt( SQUARE(x - m.mean(0)) + SQUARE(y - m.mean(1)) + SQUARE(z - m.mean(2)) );
-            if ( norm < SIGMA_ACCURACY * m.sigma)
+            const double norm = sqrt( pow(x - m.mean(0), 2) + pow(y - m.mean(1), 2) + pow(z - m.mean(2), 2) );
+            if ( norm < sigma_accuracy * m.sigma)
             {
-                double temp = m.maximum * exp( - (SQUARE(x - m.mean(0)) + SQUARE(y - m.mean(1)) + SQUARE(z - m.mean(2))) / (2 * SQUARE(m.sigma)) );
+                double temp = m.maximum * exp( - (pow(x - m.mean(0), 2) + pow(y - m.mean(1), 2) + pow(z - m.mean(2), 2)) / (2 * pow(m.sigma, 2)) );
                 cost[0] -= temp;
-                gradient[0] -= (m.mean(0) - x) / SQUARE(m.sigma) * temp;
-                gradient[1] -= (m.mean(1) - y) / SQUARE(m.sigma) * temp;
-                gradient[2] -= (m.mean(2) - z) / SQUARE(m.sigma) * temp;
+                gradient[0] -= (m.mean(0) - x) / pow(m.sigma, 2) * temp;
+                gradient[1] -= (m.mean(1) - y) / pow(m.sigma, 2) * temp;
+                gradient[2] -= (m.mean(2) - z) / pow(m.sigma, 2) * temp;
             }
         }
         return true;
     }
     
     virtual int NumParameters() const { return 3; }
+    
+private:
+    std::vector<Measurement> measurements;
+    float sigma_accuracy;
 };
 
 
 class LikelihoodFilter
-{
-    
-private:
-    std::vector<Measurement> history;
-    
-    Eigen::Vector3f position;
-    float certainty;
-    
-    Color color;
-    
-    void saveLocalMaximum(Eigen::Vector3f start_position)
-    {
-        Eigen::Vector3f temp_position;
-        float temp_certainty;
-        findLocalMaximum(start_position, temp_position, temp_certainty);
-        position = temp_position;
-        certainty = temp_certainty;
-    }
-    
-    void findLocalMaximum(Eigen::Vector3f start_position, Eigen::Vector3f& final_position, float& final_certainty)
-    {
-        LikelihoodField *likelihood_field = new LikelihoodField(history);
-        ceres::GradientProblem problem(likelihood_field);
-        ceres::GradientProblemSolver::Options options;
-        ceres::GradientProblemSolver::Summary summary;
-        
-        double parameters[3] = { start_position(0), start_position(1), start_position(2)};
-        double cost[1];
-        double gradient[1];
-        ceres::Solve(options, problem, parameters, &summary);
-        likelihood_field->Evaluate(parameters, cost, gradient);
-        
-        Eigen::Vector3f result;
-        result << parameters[0], parameters[1], parameters[2];
-        final_position = result;
-        final_certainty = -cost[0];
-    }
-    
-    
+{    
 public:
-    LikelihoodFilter(Color color) : color(color)
+    LikelihoodFilter(Color color, sigma_accuracy) : color(color), certainty(0.), sigma_accuracy(sigma_accuracy)
     {
-        history = {};
-        
         position = Eigen::Vector3f::Zero();
-        certainty = 0.;
+        history = {};
     }
     
     void update(std::vector<Measurement> measurements, float time)
@@ -119,7 +76,7 @@ public:
         }
         
         certainty *= 0.9;
-        if (history.size() > 0)
+        if (0 < history.size())
             findGlobalMaximum(time);
     }
     
@@ -142,7 +99,7 @@ public:
             }
         }
         std::vector<Measurement> initials(history.begin() + index_sum_maximum, history.end());
-        if (initials.size() == 1)
+        if (1 == initials.size())
         {
             saveLocalMaximum( initials.back().mean );
             return;
@@ -156,7 +113,7 @@ public:
             for (int j = 0; j < (history.size() - initials.size()) + i; j++)
             {
                 Measurement m_j = history.at(j);
-                if ((m_j.mean - m.mean).norm() < SIGMA_ACCURACY * m_j.sigma)
+                if ((m_j.mean - m.mean).norm() < sigma_accuracy * m_j.sigma)
                     sum_rect += m_j.maximum;
             }
             if (sum_rect < initial_maximum)
@@ -165,7 +122,7 @@ public:
                 i--;
             }
         }
-        if (initials.size() == 1)
+        if (1 == initials.size())
         {
             saveLocalMaximum( initials.back().mean );
             return;
@@ -193,29 +150,67 @@ public:
         certainty = maximum; */
     }
 
-    Sphere getSphere() { return Sphere(position, color); }
+    Sphere getSphere()
+    {
+        return Sphere(position, color); 
+    }
     
-    bool isTracked() { return (certainty > 1.0); }
+    bool isTracked()
+    {
+        return (certainty > 1.0);
+    }
+
+
+private:
+    Eigen::Vector3f position;
+    std::vector<Measurement> history;
+    
+    Color color;
+    float certainty;
+    float sigma_accuracy;
+    
+    
+    void saveLocalMaximum(Eigen::Vector3f start_position)
+    {
+        Eigen::Vector3f temp_position;
+        float temp_certainty;
+        findLocalMaximum(start_position, temp_position, temp_certainty);
+        position = temp_position;
+        certainty = temp_certainty;
+    }
+    
+    void findLocalMaximum(Eigen::Vector3f start_position, Eigen::Vector3f& final_position, float& final_certainty)
+    {
+        LikelihoodField *likelihood_field = new LikelihoodField(history, sigma_accuracy);
+        ceres::GradientProblem problem(likelihood_field);
+        ceres::GradientProblemSolver::Options options;
+        ceres::GradientProblemSolver::Summary summary;
+        
+        double parameters[3] = { start_position(0), start_position(1), start_position(2)};
+        double cost[1];
+        double gradient[1];
+        ceres::Solve(options, problem, parameters, &summary);
+        likelihood_field->Evaluate(parameters, cost, gradient);
+        
+        Eigen::Vector3f result;
+        result << parameters[0], parameters[1], parameters[2];
+        final_position = result;
+        final_certainty = -cost[0];
+    }
 };
 
 
 class SphereFilters
-{
-
-private:
-    LikelihoodFilter *red_filter;
-    LikelihoodFilter *blue_filter;
-    LikelihoodFilter *green_filter;
-    LikelihoodFilter *yellow_filter;
-    
-    
+{    
 public:
     SphereFilters()
     {
-        red_filter = new LikelihoodFilter(Red);
-        blue_filter = new LikelihoodFilter(Blue);
-        green_filter = new LikelihoodFilter(Green);
-        yellow_filter = new LikelihoodFilter(Yellow);
+        float sigma_accuracy = 4.;
+        
+        red_filter = new LikelihoodFilter(Red, sigma_accuracy);
+        blue_filter = new LikelihoodFilter(Blue, sigma_accuracy);
+        green_filter = new LikelihoodFilter(Green, sigma_accuracy);
+        yellow_filter = new LikelihoodFilter(Yellow, sigma_accuracy);
     }
     
     void update(std::vector<Measurement> measurements, float time)
@@ -255,6 +250,13 @@ public:
         
         return result;
     }
+    
+    
+private:
+    LikelihoodFilter *red_filter;
+    LikelihoodFilter *blue_filter;
+    LikelihoodFilter *green_filter;
+    LikelihoodFilter *yellow_filter;
 };
 
 #endif

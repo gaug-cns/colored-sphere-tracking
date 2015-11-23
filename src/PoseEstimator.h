@@ -6,11 +6,15 @@
  ... calculates the robot pose via an iterative process.
 */
 
+#include <math.h>
+
+#include <Eigen/Dense>
 #include "ceres/ceres.h"
 #include "ceres/dynamic_autodiff_cost_function.h"
 #include "ceres/rotation.h"
 
-#include "helper.h"
+#include "Helper.h"
+#include "Pose.h"
 
 struct ErrorModel
 {
@@ -21,15 +25,16 @@ struct ErrorModel
 		T model[3] = { T(point_model(0)), T(point_model(1)), T(point_model(2)) };
 		T measurement[3] = { T(point_measurement(0)), T(point_measurement(1)), T(point_measurement(2)) };
 		
-		T model_angles[3] = {pose[3] * T(180/PI), pose[4] * T(180/PI), pose[5] * T(180/PI)};
+		T model_angles[3] = {pose[3], pose[4], pose[5]};
 		T rotation_matrix_model[9];
 		ceres::EulerAnglesToRotationMatrix(model_angles, 3, rotation_matrix_model);
+		
 		T model_rotated[3];
 		dot(rotation_matrix_model, model, model_rotated);
 		
-		residual[0] = (measurement[0] - model_rotated[0] - pose[0]);
-		residual[1] = (measurement[1] - model_rotated[1] - pose[1]);
-		residual[2] = (measurement[2] - model_rotated[2] - pose[2]);
+		residual[0] = measurement[0] - model_rotated[0] - pose[0];
+		residual[1] = measurement[1] - model_rotated[1] - pose[1];
+		residual[2] = measurement[2] - model_rotated[2] - pose[2];
 		return true;
 	}
 	
@@ -48,7 +53,6 @@ protected:
 
 class PoseEstimator
 {
-
 public:
     PoseEstimator() {};
     
@@ -56,50 +60,45 @@ public:
     {
         // Find all colors of measurement in model and bring them to corresponding order
         std::vector<Sphere> compare_model;
-        for (int i = 0; i < measurements.size(); i++)
-        {
-            Sphere measurement_sphere = measurements.at(i);
-            
-            for (int i = 0; i < model.size(); i++)
-            {
-                Sphere model_sphere = model.at(i);
-                if (measurement_sphere.color == model_sphere.color)
+		for (auto measurement_sphere : measurements)
+		{
+			for (auto model_sphere : model)
+			{
+				if (measurement_sphere.color == model_sphere.color)
                 {
-                    compare_model.push_back( model_sphere );
+                    compare_model.push_back(model_sphere);
                     break;
                 }
-            }
-        }
+			}
+		}
         
-        Eigen::VectorXd it_pose(6);
-        it_pose << 0, 0, 0, 0, 0, 0;
+        Eigen::VectorXd vector(6) = Eigen::VectorXd::Zero(6);
         
         ceres::Problem problem;
-        
         for (int i = 0; i < measurements.size(); i++)
         {
             Sphere sphere_model = compare_model.at(i);
             Sphere sphere_measurement = measurements.at(i);
             
-            Eigen::Vector3f sphere_model_vector(sphere_model.position(0), sphere_model.position(1), sphere_model.position(2));
-            Eigen::Vector3f sphere_measurement_vector(sphere_measurement.position(0), sphere_measurement.position(1), sphere_measurement.position(2));
-            
-            ceres::CostFunction* cost_function = new ceres::AutoDiffCostFunction<ErrorModel, 3, 6>(new ErrorModel(sphere_model_vector, sphere_measurement_vector));
-            problem.AddResidualBlock(cost_function, nullptr, it_pose.data());
+            ceres::CostFunction* cost_function = new ceres::AutoDiffCostFunction<ErrorModel, 3, 6>(
+				new ErrorModel(sphere_model.position, sphere_measurement.position)
+			);
+            problem.AddResidualBlock(cost_function, nullptr, vector.data());
         }
         
         ceres::Solver::Options options;
-        
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
         // cout << summary.FullReport() << endl;
-        
-        Eigen::Vector3f pose_position, pose_orientation;
-        pose_position << (float)it_pose(0), (float)it_pose(1), (float)it_pose(2);
-        pose_orientation << (float)it_pose(3), (float)it_pose(4), (float)it_pose(5);
-        
-        Pose result = {pose_position, pose_orientation};
-        return result;
+
+        Pose pose = Pose();
+		pose.position(X) = vector(0);
+		pose.position(Y) = vector(1);
+		pose.position(Z) = vector(2);
+		pose.rotation(ROLL) = vector(3) * 180. / M_PI;
+		pose.rotation(PITCH) = vector(4) * 180. / M_PI;
+		pose.rotation(YAW) = vector(5) * 180. / M_PI;
+        return pose;
     }
 };
 
