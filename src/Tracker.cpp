@@ -13,8 +13,7 @@
 #include "ini.hpp"
 
 
-float width = 640; // [px]
-float height = 480; // [px]
+cv::Size size = cv::Size(640, 480); // [px]
 
 #define BALL_RADIUS 0.03 // [m]
 #define CAMERA_X_ANGLE 44.5 * M_PI / 180. // [rad], 0 rad -> horizontal, pi/2 -> vertical down
@@ -99,7 +98,7 @@ int main(int argc, char *argv[])
     {
 	    // 3a. set video mode
     	VideoMode mode;
-    	mode.setResolution(width, height);
+    	mode.setResolution(size.width, size.height);
     	mode.setFps(30);
     	mode.setPixelFormat(PIXEL_FORMAT_DEPTH_1_MM);
 
@@ -120,7 +119,7 @@ int main(int argc, char *argv[])
     	{
     		// 4a. set video mode
 		    VideoMode mode;
-    		mode.setResolution(width, height);
+    		mode.setResolution(size.width, size.height);
     		mode.setFps(30);
     		mode.setPixelFormat(PIXEL_FORMAT_RGB888);
             
@@ -176,7 +175,7 @@ int main(int argc, char *argv[])
     
     
     // Init sphere detector
-    SphereDetector sphere_detector = SphereDetector(frame_color_temp, frame_depth_temp);
+    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp);
     SphereFilters sphere_filters = SphereFilters();
     PoseEstimator pose_estimator = PoseEstimator();
     
