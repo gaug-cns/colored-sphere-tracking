@@ -212,13 +212,13 @@ int main(int argc, char *argv[])
     		break;
     	}
     	
-    	if (color_stream.readFrame( &color_frame ) != STATUS_OK)
+    	if (STATUS_OK != color_stream.readFrame( &color_frame ))
     	{
     		std::cerr << "Can't read color frame'" << std::endl;
     		break;
     	}
     	
-    	if (depth_stream.readFrame( &depth_frame ) != STATUS_OK)
+    	if (STATUS_OK != depth_stream.readFrame( &depth_frame ))
     	{
     		std::cerr << "Can't read depth frame'" << std::endl;
     		break;
