@@ -4,8 +4,6 @@
 #include <math.h>
 #include <Eigen/Geometry>
 
-#include <geometry_msgs/Quaternion.h>
-
 
 class Rotation
 {
@@ -13,7 +11,6 @@ public:
     Rotation() { setQuaternion(1., 0., 0., 0.); }
     Rotation(float w, float x, float y, float z) { setQuaternion(w, x, y, z); }
     Rotation(float roll, float pitch, float yaw) { setEuler(roll, pitch, yaw); }
-    Rotation(geometry_msgs::Quaternion q) { setQuaternionMsg(q); }
     Rotation(Eigen::Vector3f v) { setEuler(v(0), v(1), v(2)); }
     
     ~Rotation() { }
@@ -40,13 +37,7 @@ public:
         q.z() = croll * cpitch * syaw - sroll * spitch * cyaw;
         q.normalize();
     }
-    
-    void setQuaternionMsg(geometry_msgs::Quaternion _q)
-    {
-        q = Eigen::Quaternionf(_q.w, _q.x, _q.y, _q.z);
-        q.normalize();
-    }
-    
+
     float getRoll()
     {
         return atan2(2. * (q.w() * q.x() + q.y() * q.z()), 1. - 2. * (q.x() * q.x() + q.y() * q.y()));
@@ -65,16 +56,6 @@ public:
     Eigen::Quaternionf getQuaternion()
     {
         return q;
-    }
-    
-    geometry_msgs::Quaternion getQuaternionMsg()
-    {
-        geometry_msgs::Quaternion result;
-        result.w = q.w();
-        result.x = q.x();
-        result.y = q.y();
-        result.z = q.z();
-        return result;
     }
     
     Eigen::Matrix3f getRotation()
