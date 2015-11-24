@@ -50,7 +50,7 @@ public:
         cv::imshow("final spheres", frame);
     }
     
-    std::vector<Measurement> findSpheres(cv::Mat frame, cv::Mat depth_frame, float time)
+    std::vector<Measurement> findSpheres(cv::Mat frame, cv::Mat depth_frame, double time)
     {
         cv::Mat color_diff_threshold = getColorDifferenceBinary(frame);
         // cv::imshow("color_diff_threshold", color_diff_threshold);
@@ -76,8 +76,10 @@ public:
         {
             Color color = it->first;
             std::vector<int> color_range = it->second;
+            
             cv::Mat frame_gray = inHSVRange(frame, color_range);
-            // if (color == debug_color) { cv::imshow("color_filter", frame_gray); }
+            if (color == debug_color) 
+                cv::imshow("color_filter", frame_gray);
             
             // Take difference of frame
             cv::Mat diff_frame;
@@ -85,7 +87,8 @@ public:
             
             // Blur before hough circles
             cv::GaussianBlur(diff_frame, diff_frame, cv::Size(3, 3), 1.5, 1.5);
-            // if (color == debug_color) { cv::imshow("final_before_hough", diff_frame); }
+            if (color == debug_color) 
+                cv::imshow("final_before_hough", diff_frame);
             
             std::vector<cv::Vec3f> circles;
             cv::HoughCircles(diff_frame, circles, CV_HOUGH_GRADIENT, 2, min_distance, p1, p2, min_radius, max_radius);
@@ -98,12 +101,10 @@ public:
                 int r = cvRound(circle[2]);
                 
                 float d = 10. / 255 * (float)depth_frame.at<unsigned char>(y, x) + ball_radius;
-                
-                float r_detected = r;
                 float r_expected = camera_f / d * ball_radius;
                 
                 // Check if radius of circle detection is coherant with the depth
-                if (r_detected / r_expected > min_radius_deviation && r_detected / r_expected < max_radius_deviation)
+                if (r / r_expected > min_radius_deviation && r / r_expected < max_radius_deviation)
                 {
                     if (color == debug_color)
                         cv::circle(frame, cv::Point(x, y), r, cv::Scalar(0, 0, 0), 2, 8, 0);
