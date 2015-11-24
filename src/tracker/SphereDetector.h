@@ -10,9 +10,9 @@ class SphereDetector
 {    
 public:
     SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame, 
-        float ball_radius, float camera_x_angle, float camera_f, 
+        float ball_radius, float camera_roll, float focal_length, 
         std::string background_image_dir, std::string depth_background_image_dir) : 
-        size(size), ball_radius(ball_radius), camera_x_angle(camera_x_angle), camera_f(camera_f), background_image_dir(background_image_dir), depth_background_image_dir(depth_background_image_dir)
+        size(size), ball_radius(ball_radius), camera_roll(camera_roll), focal_length(focal_length), background_image_dir(background_image_dir), depth_background_image_dir(depth_background_image_dir)
     {
         background = cv::imread(background_image_dir, 1);
         depth_background = cv::imread(depth_background_image_dir, 1);
@@ -33,6 +33,10 @@ public:
         color_map[Green] = {58, 16, 130, 80, 255, 255};
         color_map[Yellow] = {24, 12, 130, 150, 255, 255};
         color_map[Blue] = {110, 24, 100, 50, 255, 255};
+        
+        color_threshold_difference = 25;
+        
+        center = cv::Point2f(size.width / 2, size.height / 2);
     }
     
     void showSpheres(std::vector<Sphere> spheres, cv::Mat frame)
@@ -86,7 +90,7 @@ public:
             cv::bitwise_and(diff_threshold, frame_gray, diff_frame);
             
             // Blur before hough circles
-            cv::GaussianBlur(diff_frame, diff_frame, cv::Size(3, 3), 1.5, 1.5);
+            cv::GaussianBlur(diff_frame, diff_frame, cv::Size(5, 5), 1.5, 1.5);
             if (color == debug_color) 
                 cv::imshow("final_before_hough", diff_frame);
             
@@ -101,7 +105,7 @@ public:
                 int r = cvRound(circle[2]);
                 
                 float d = 10. / 255 * (float)depth_frame.at<unsigned char>(y, x) + ball_radius;
-                float r_expected = camera_f / d * ball_radius;
+                float r_expected = focal_length / d * ball_radius;
                 
                 // Check if radius of circle detection is coherant with the depth
                 if (r / r_expected > min_radius_deviation && r / r_expected < max_radius_deviation)
@@ -109,7 +113,7 @@ public:
                     if (color == debug_color)
                         cv::circle(frame, cv::Point(x, y), r, cv::Scalar(0, 0, 0), 2, 8, 0);
                     
-                    Eigen::Vector3f position = globalFromImageCoordinates(x, y, d);
+                    Eigen::Vector3f position = globalFromImageCoordinates(cv::Point2f(x, y), d);
                     
                     Measurement measurement = Measurement(position, color);
                     measurement.sigma = 0.05; // [m]
@@ -154,16 +158,19 @@ private:
     cv::Mat background;
     cv::Mat depth_background;
     cv::Size size;
+    cv::Point2f center;
     
     float ball_radius;
-    float camera_x_angle;
-    float camera_f;
+    float camera_roll;
+    float focal_length;
     
     std::string background_image_dir;
     std::string depth_background_image_dir;
     
     std::map<Color, cv::Scalar> draw_color_map;
     std::map<Color, std::vector<int>> color_map;
+    
+    int color_threshold_difference;
     
     
     cv::Mat inHSVRange(cv::Mat frame, std::vector<int> color_range)
@@ -179,23 +186,23 @@ private:
         cv::cvtColor(frame, frame_hsv, CV_BGR2HSV);
         cv::Mat frame_gray;
         
-        if (hue - hue_range < 0 && hue + hue_range > 0)
+        if (hue - hue_range < 0 && 0 < hue + hue_range)
         {
             cv::Mat frame_gray_1, frame_gray_2;
-            cv::inRange(frame_hsv, cv::Scalar( hue - hue_range + 180, min_s, min_v), cv::Scalar( 180, max_s, max_v), frame_gray_1);
+            cv::inRange(frame_hsv, cv::Scalar( hue - hue_range + 180, min_s, min_v), cv::Scalar(180, max_s, max_v), frame_gray_1);
             cv::inRange(frame_hsv, cv::Scalar( 0, min_s, min_v), cv::Scalar( hue + hue_range, max_s, max_v), frame_gray_2);
             cv::bitwise_or(frame_gray_1, frame_gray_2, frame_gray);
         }
-        else if (hue - hue_range < 180 && hue + hue_range > 180)
+        else if (hue - hue_range < 180 && 180 < hue + hue_range)
         {
             cv::Mat frame_gray_1, frame_gray_2;
-            cv::inRange(frame_hsv, cv::Scalar( hue - hue_range, min_s, min_v), cv::Scalar( 180, max_s, max_v), frame_gray_1);
-            cv::inRange(frame_hsv, cv::Scalar( 0, min_s, min_v), cv::Scalar( hue + hue_range - 180, max_s, max_v), frame_gray_2);
+            cv::inRange(frame_hsv, cv::Scalar(hue - hue_range, min_s, min_v), cv::Scalar(180, max_s, max_v), frame_gray_1);
+            cv::inRange(frame_hsv, cv::Scalar(0, min_s, min_v), cv::Scalar( hue + hue_range - 180, max_s, max_v), frame_gray_2);
             cv::bitwise_or(frame_gray_1, frame_gray_2, frame_gray);
         }
         else
         {
-            cv::inRange(frame_hsv, cv::Scalar( hue - hue_range, min_s, min_v), cv::Scalar( hue + hue_range, max_s, max_v), frame_gray);
+            cv::inRange(frame_hsv, cv::Scalar(hue - hue_range, min_s, min_v), cv::Scalar(hue + hue_range, max_s, max_v), frame_gray);
         }
         
         return frame_gray;
@@ -213,9 +220,8 @@ private:
         cv::GaussianBlur(diff_gray, diff_gray, cv::Size(5, 5), 1.5, 1.5);
         
         // Take threshold of differnce
-        int threshold_difference = 25;
         cv::Mat diff_threshold;
-        cv::threshold(diff_gray, diff_threshold, threshold_difference, 255, cv::THRESH_BINARY);
+        cv::threshold(diff_gray, diff_threshold, color_threshold_difference, 255, cv::THRESH_BINARY);
         
         return diff_threshold;
     }
@@ -247,25 +253,25 @@ private:
         return rotation;
     }
     
-    Eigen::Vector3f globalFromImageCoordinates(float cx, float cy, float d)
+    Eigen::Vector3f globalFromImageCoordinates(cv::Point2f point, float d)
     {
         Eigen::Vector3f position;
-        position(0) = 1. / camera_f * d * ( cx - size.width / 2 );
+        position(0) = d / focal_length * (point.x - center.x);
         position(1) = d;
-        position(2) = -1. / camera_f * d * ( cy - size.height / 2 );
+        position(2) = -d / focal_length * (point.y - center.y);
         
-        Eigen::Vector3f transformed = getRotation(camera_x_angle) * position;
+        Eigen::Vector3f transformed = getRotation(camera_roll) * position;
         return transformed;
     }
     
     std::vector<float> getCircleDrawingFromPosition(Eigen::Vector3f position)
     {
-        Eigen::Vector3f transformed = getRotation(camera_x_angle) * position;
+        Eigen::Vector3f transformed = getRotation(camera_roll) * position;
         
         float d = transformed(1);
-        float image_x = camera_f / d * transformed(0) + size.width / 2;
-        float image_y = - camera_f / d * transformed(2) + size.height / 2;
-        float image_radius = camera_f * ball_radius / d;
+        float image_x = focal_length / d * transformed(0) + center.x;
+        float image_y = - focal_length / d * transformed(2) + center.y;
+        float image_radius = focal_length * ball_radius / d;
         
         std::vector<float> circle = {image_x, image_y, image_radius};
         return circle;

@@ -96,7 +96,7 @@ public:
         {
             Measurement m = history.at(i);
             sum_maximas += m.maximum;
-            if (sum_maximas > initial_maximum)
+            if (initial_maximum < sum_maximas)
             {
                 index_sum_maximum = i;
                 break;
@@ -217,12 +217,13 @@ public:
         yellow_filter = new LikelihoodFilter(Yellow, sigma_accuracy);
     }
     
-    void update(std::vector<Measurement> measurements, float time)
+    void update(std::vector<Measurement> ms, float time)
     {
         std::vector<Measurement> red_measurements, blue_measurements, green_measurements, yellow_measurements;
-        
-        for (auto m : measurements) {
-            switch (m.color) {
+        for (auto m : measurements)
+        {
+            switch (m.color)
+            {
                 case Red: red_measurements.push_back(m); break;
                 case Blue: blue_measurements.push_back(m); break;
                 case Green: green_measurements.push_back(m); break;

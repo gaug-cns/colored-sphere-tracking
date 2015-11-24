@@ -29,8 +29,8 @@ enum Color
 cv::Size size;
 
 float sphere_radius; // [m]
-float camera_x_angle; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
-float camera_f; // [a.u.]
+float camera_roll; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
+float focal_length; // [a.u.]
 
 std::string model_path;
 std::string background_image_dir;
@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
     size = cv::Size(width, height);
     
     sphere_radius = std::stof(config["sphere_radius"]);
-    camera_x_angle = std::stof(config["camera_x_angle"]);
-    camera_f = std::stof(config["camera_f"]);
+    camera_roll = std::stof(config["camera_roll"]);
+    focal_length = std::stof(config["focal_length"]);
 
     model_path = config["model_path"];
     background_image_dir = config["background_image_dir"];
@@ -239,7 +239,7 @@ int main(int argc, char *argv[])
     // Init sphere detector
 	float sigma_accuracy = 4.;
 	
-    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, sphere_radius, camera_x_angle, camera_f, background_image_dir, depth_background_image_dir);
+    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, sphere_radius, camera_roll, focal_length, background_image_dir, depth_background_image_dir);
     SphereFilters sphere_filters = SphereFilters(sigma_accuracy);
     PoseEstimator pose_estimator = PoseEstimator();
 
