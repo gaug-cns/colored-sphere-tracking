@@ -177,9 +177,9 @@ private:
     
     void saveLocalMaximum(Eigen::Vector3f start_position)
     {
-        Eigen::Vector3f temp_position;
-        float temp_certainty;
-        findLocalMaximum(start_position, temp_position, temp_certainty);
+        Eigen::Vector3f temp_position = start_position;
+        float temp_certainty = 1.;
+        // findLocalMaximum(start_position, temp_position, temp_certainty);
         position = temp_position;
         certainty = temp_certainty;
     }
