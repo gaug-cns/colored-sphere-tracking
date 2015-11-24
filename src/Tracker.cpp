@@ -38,6 +38,8 @@ std::string depth_background_image_dir;
 std::string save_image_dir;
 std::string tracking_data_dir;
 
+bool calculate_pose;
+
 
 // Get current time in [s]
 double getTime()
@@ -99,6 +101,8 @@ int main(int argc, char *argv[])
     depth_background_image_dir = config["depth_background_image_dir"];
     save_image_dir = config["save_image_dir"];
     tracking_data_dir = config["tracking_data_dir"];
+	
+	calculate_pose = ("true" == config["calculate_pose"]) ? true : false;
     
     
     // Open INI model file
@@ -299,18 +303,20 @@ int main(int argc, char *argv[])
         // Draw spheres
         sphere_detector.showSpheres(tracked_spheres, frame);
         
-        
-        
-        // Calculate pose
-        Pose pose = pose_estimator.getPoseFromModel(copter, tracked_spheres);
-        pose.time = current_time;
-        if (tracked_spheres.size() >= 3)
-        {
-            Pose pose_result = pose - calibration_pose;
-            pose_history.push_back(pose_result);
-            std::cout << "X: " << pose.position(X) << " Y: " << pose.position(Y) << " Z: " << pose.position(Z) << " Roll: " << pose.orientation(ROLL) << " Pitch: " << pose.orientation(PITCH) << " Yaw: " << pose.orientation(YAW) << std::endl;
-        }
 
+        // Calculate pose
+		if (calculate_pose)
+		{
+			Pose pose = pose_estimator.getPoseFromModel(copter, tracked_spheres);
+	        pose.time = current_time;
+	        if (tracked_spheres.size() >= 3)
+	        {
+	            Pose pose_result = pose - calibration_pose;
+	            pose_history.push_back(pose_result);
+	            std::cout << "X: " << pose.position(X) << " Y: " << pose.position(Y) << " Z: " << pose.position(Z) << " Roll: " << pose.orientation(ROLL) << " Pitch: " << pose.orientation(PITCH) << " Yaw: " << pose.orientation(YAW) << std::endl;
+	        }
+		}
+        
         
         // React on keyboard input
     	char key = cv::waitKey(10);
