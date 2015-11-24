@@ -84,19 +84,20 @@ public:
             cv::bitwise_and(diff_threshold, frame_gray, diff_frame);
             
             // Blur before hough circles
-            cv::GaussianBlur(diff_frame, diff_frame, cv::Size(3,3), 1.5, 1.5);
+            cv::GaussianBlur(diff_frame, diff_frame, cv::Size(3, 3), 1.5, 1.5);
             // if (color == debug_color) { cv::imshow("final_before_hough", diff_frame); }
             
             std::vector<cv::Vec3f> circles;
             cv::HoughCircles(diff_frame, circles, CV_HOUGH_GRADIENT, 2, min_distance, p1, p2, min_radius, max_radius);
             
             std::vector<Measurement> measurements;
-            for (auto circle : circles) {
+            for (auto circle : circles)
+            {
                 int x = cvRound(circle[0]);
                 int y = cvRound(circle[1]);
                 int r = cvRound(circle[2]);
                 
-                float d = 10. / 255. * (float)depth_frame.at<unsigned char>(y, x) + ball_radius;
+                float d = 10. / 255 * (float)depth_frame.at<unsigned char>(y, x) + ball_radius;
                 
                 float r_detected = r;
                 float r_expected = camera_f / d * ball_radius;
@@ -208,7 +209,7 @@ private:
         // Blur and gray difference
         cv::Mat diff_gray;
         cv::cvtColor(diff, diff_gray, CV_BGR2GRAY);
-        cv::GaussianBlur(diff_gray, diff_gray, cv::Size(5,5), 1.5, 1.5);
+        cv::GaussianBlur(diff_gray, diff_gray, cv::Size(5, 5), 1.5, 1.5);
         
         // Take threshold of differnce
         int threshold_difference = 25;
@@ -265,10 +266,7 @@ private:
         float image_y = - camera_f / d * transformed(2) + size.height / 2;
         float image_radius = camera_f * ball_radius / d;
         
-        std::vector<float> circle;
-        circle.push_back(image_x);
-        circle.push_back(image_y);
-        circle.push_back(image_radius);
+        std::vector<float> circle = {image_x, image_y, image_radius};
         return circle;
     }
 };

@@ -296,12 +296,12 @@ int main(int argc, char *argv[])
         
         
         // Update filter and get tracked spheres
-        sphere_filters.update(measurements, current_time);
-        std::vector<Sphere> tracked_spheres = sphere_filters.getTrackedSpheres(current_time);
+        // sphere_filters.update(measurements, current_time);
+        // std::vector<Sphere> tracked_spheres = sphere_filters.getTrackedSpheres(current_time);
         
         
         // Draw spheres
-        sphere_detector.showSpheres(tracked_spheres, frame);
+        // sphere_detector.showSpheres(tracked_spheres, frame);
         
 
         // Calculate pose
