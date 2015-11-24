@@ -305,9 +305,10 @@ int main(int argc, char *argv[])
         
 
         // Calculate pose
+		Pose pose = Pose();
 		if (calculate_pose)
 		{
-			Pose pose = pose_estimator.getPoseFromModel(copter, tracked_spheres);
+			pose = pose_estimator.getPoseFromModel(copter, tracked_spheres);
 	        pose.time = current_time;
 	        if (tracked_spheres.size() >= 3)
 	        {
