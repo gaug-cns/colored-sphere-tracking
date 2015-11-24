@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
         
         // Update filter and get tracked spheres
         // sphere_filters.update(measurements, current_time);
-        // std::vector<Sphere> tracked_spheres = sphere_filters.getTrackedSpheres(current_time);
+        std::vector<Sphere> tracked_spheres = sphere_filters.getTrackedSpheres(current_time);
         
         
         // Draw spheres
