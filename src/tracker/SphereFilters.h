@@ -1,16 +1,16 @@
 #ifndef _SPHERE_FILTERS_H_
 #define _SPHERE_FILTERS_H_
 
-#include "ceres/ceres.h"
+/* #include "ceres/ceres.h"
 #include "ceres/dynamic_autodiff_cost_function.h"
-#include "ceres/rotation.h"
+#include "ceres/rotation.h" */
 
 #include "Measurement.h"
 #include "Sphere.h"
 
 
 
-class LikelihoodField : public ceres::FirstOrderFunction
+/* class LikelihoodField : public ceres::FirstOrderFunction
 {
 public:
     LikelihoodField(std::vector<Measurement> measurements, float sigma_accuracy) : measurements(measurements), sigma_accuracy(sigma_accuracy) { }
@@ -48,7 +48,7 @@ public:
 private:
     std::vector<Measurement> measurements;
     float sigma_accuracy;
-};
+}; */
 
 
 class LikelihoodFilter
@@ -184,7 +184,7 @@ private:
         certainty = temp_certainty;
     }
     
-    void findLocalMaximum(Eigen::Vector3f start_position, Eigen::Vector3f& final_position, float& final_certainty)
+    /* void findLocalMaximum(Eigen::Vector3f start_position, Eigen::Vector3f& final_position, float& final_certainty)
     {
         LikelihoodField *likelihood_field = new LikelihoodField(history, sigma_accuracy);
         ceres::GradientProblem problem(likelihood_field);
@@ -201,17 +201,16 @@ private:
         result << parameters[0], parameters[1], parameters[2];
         final_position = result;
         final_certainty = -cost[0];
-    }
+    } */
 };
+
 
 
 class SphereFilters
 {    
 public:
-    SphereFilters()
+    SphereFilters(float sigma_accuracy)
     {
-        float sigma_accuracy = 4.;
-        
         red_filter = new LikelihoodFilter(Red, sigma_accuracy);
         blue_filter = new LikelihoodFilter(Blue, sigma_accuracy);
         green_filter = new LikelihoodFilter(Green, sigma_accuracy);

@@ -237,8 +237,10 @@ int main(int argc, char *argv[])
     
     
     // Init sphere detector
+	float sigma_accuracy = 4.;
+	
     SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, sphere_radius, camera_x_angle, camera_f, background_image_dir, depth_background_image_dir);
-    SphereFilters sphere_filters = SphereFilters();
+    SphereFilters sphere_filters = SphereFilters(sigma_accuracy);
     PoseEstimator pose_estimator = PoseEstimator();
 
     // Init calibration pose and time
