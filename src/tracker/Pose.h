@@ -2,6 +2,7 @@
 #define _POSE_H_
 
 #include <Eigen/Dense>
+#include "Rotation.h"
 
 #define X 0
 #define Y 1
