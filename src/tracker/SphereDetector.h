@@ -1,6 +1,8 @@
 #ifndef _SPHERE_DETECTOR_H_
 #define _SPHERE_DETECTOR_H_
 
+#include <numeric>
+
 #include "Sphere.h"
 #include "Measurement.h"
 
@@ -9,15 +11,13 @@
 class SphereDetector
 {    
 public:
-    SphereDetector(cv::Size size, cv::Mat frame, cv::Mat depth_frame, 
+    SphereDetector(cv::Size size, 
         float ball_radius, float camera_roll, float focal_length, 
         std::string background_image_dir, std::string depth_background_image_dir) : 
         size(size), ball_radius(ball_radius), camera_roll(camera_roll), focal_length(focal_length), background_image_dir(background_image_dir), depth_background_image_dir(depth_background_image_dir)
     {
         background = cv::imread(background_image_dir, 1);
         depth_background = cv::imread(depth_background_image_dir, 1);
-        if ( !background.data || !depth_background.data )
-            saveBackground(frame, depth_frame);
         
         // debug_color = Red;
         
@@ -138,17 +138,6 @@ public:
         }
         
         return result;
-    }
-    
-    void saveBackground(cv::Mat frame, cv::Mat depth_frame)
-    {
-        cv::imwrite(background_image_dir, frame);
-        cv::imwrite(depth_background_image_dir, depth_frame);
-        
-        background = frame;
-        depth_background = depth_frame;
-        
-        std::cout << "Calibration image saved." << std::endl;
     }
     
     int debug_color;

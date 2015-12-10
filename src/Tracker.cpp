@@ -4,11 +4,10 @@
 #include <sys/stat.h>
 #include <math.h>
 
+#include "ini.hpp"
 #include <Eigen/Dense>
 #include <opencv2/opencv.hpp>
-#include "OpenNI.h"
 
-#include "ini.hpp"
 
 enum Color
 {
@@ -33,26 +32,22 @@ float camera_roll; // [rad], 0 rad -> horizontal, pi/2 -> vertical down
 float focal_length; // [a.u.]
 
 std::string model_path;
-std::string background_image_dir;
-std::string depth_background_image_dir;
-std::string save_image_dir;
-std::string tracking_data_dir;
+std::string tracking_data_path;
+
+std::string background_color_path;
+std::string background_depth_path;
+std::string video_color_path;
+std::string video_depth_path;
+
 
 bool calculate_pose;
 
-
-// Get current time in [s]
-double getTime()
-{
-    std::chrono::milliseconds ms = std::chrono::duration_cast<std::chrono::milliseconds> ( std::chrono::system_clock::now().time_since_epoch() );
-    return ((double)ms.count()) / 1000;
-}
 
 // Save pose and time data in txt file
 void saveTrackingData(std::vector<Pose> pose_history)
 {
     std::ofstream myfile;
-    myfile.open(tracking_data_dir);
+    myfile.open(tracking_data_path);
     
     myfile << "t[s],x[m],y[m],z[m],roll[rad],pitch[rad],yaw[rad]" << std::endl;
     for (auto pose : pose_history)
@@ -72,9 +67,6 @@ void saveTrackingData(std::vector<Pose> pose_history)
 
 
 
-
-using namespace openni;
-
 int main(int argc, char *argv[])
 {
     // Open INI config file
@@ -87,21 +79,20 @@ int main(int argc, char *argv[])
     std::stringstream out;
     p.dump(out);
     auto config = p.top();
-    
-    int width = std::stoi(config["width"]);
-    int height = std::stoi(config["height"]);
-    size = cv::Size(width, height);
-    
+
     sphere_radius = std::stof(config["sphere_radius"]);
     camera_roll = std::stof(config["camera_roll"]);
     focal_length = std::stof(config["focal_length"]);
 
     model_path = config["model_path"];
-    background_image_dir = config["background_image_dir"];
-    depth_background_image_dir = config["depth_background_image_dir"];
-    save_image_dir = config["save_image_dir"];
-    tracking_data_dir = config["tracking_data_dir"];
+	tracking_data_path = config["tracking_data_path"];
 	
+	std::string directory = config["directory"];
+	background_color_path = directory + config["background_color_name"];
+	background_depth_path = directory + config["background_depth_name"];
+	video_color_path = directory + config["video_color_name"];
+	video_depth_path = directory + config["video_depth_name"];
+    
 	calculate_pose = ("true" == config["calculate_pose"]) ? true : false;
     
     
@@ -136,174 +127,86 @@ int main(int argc, char *argv[])
         
         copter.push_back( Sphere(x, y, z, names_color[color]) );
     }
-    
-    
-    
-	// Initialize OpenNI
-    if (STATUS_OK != OpenNI::initialize())
-	{
-        std::cerr << "OpenNI Initial Error: "  << OpenNI::getExtendedError() << std::endl;
-    	return -1;
-	}
-  
-	// Open Device
-    Device device;
-    if (STATUS_OK != device.open(ANY_DEVICE))
-	{
-        std::cerr << "Can't Open Device: "  << OpenNI::getExtendedError() << std::endl;
-    	return -1;
-	}
-  
-	// Create depth stream
-	VideoStream depth_stream;
-    if (STATUS_OK == depth_stream.create(device, SENSOR_DEPTH))
+	
+	// Open video
+    cv::VideoCapture capture_color = cv::VideoCapture(video_color_path);
+    if (!capture_color.isOpened())
     {
-	    // 3a. set video mode
-    	VideoMode mode;
-    	mode.setResolution(size.width, size.height);
-    	mode.setFps(30);
-    	mode.setPixelFormat(PIXEL_FORMAT_DEPTH_1_MM);
+        std::cout << "Could not read color video." << std::endl;
+        return -1;
+    }
 
-    	if (STATUS_OK != depth_stream.setVideoMode(mode))
-    		std::cout << "Can't apply VideoMode: " << OpenNI::getExtendedError() << std::endl;
-    }
-    else
+    cv::VideoCapture capture_depth = cv::VideoCapture(video_depth_path);
+    if (!capture_depth.isOpened())
     {
-    	std::cerr << "Can't create depth stream on device: " << OpenNI::getExtendedError() << std::endl;
-    	return -1;
+        std::cout << "Could not read depth video." << std::endl;
+        return -1;
     }
-  
-	// Create color stream
-	VideoStream color_stream;
-	if (device.hasSensor(SENSOR_COLOR))
-	{
-    	if (STATUS_OK == color_stream.create(device, SENSOR_COLOR))
-    	{
-    		// 4a. set video mode
-		    VideoMode mode;
-    		mode.setResolution(size.width, size.height);
-    		mode.setFps(30);
-    		mode.setPixelFormat(PIXEL_FORMAT_RGB888);
-            
-    		if (STATUS_OK != color_stream.setVideoMode(mode))
-        		std::cout << "Can't apply VideoMode: " << OpenNI::getExtendedError() << std::endl;
-                
-    		// 4b. image registration
-    		if (device.isImageRegistrationModeSupported(IMAGE_REGISTRATION_DEPTH_TO_COLOR))
-        		device.setImageRegistrationMode(IMAGE_REGISTRATION_DEPTH_TO_COLOR);
-    	}
-    	else
-    	{
-    		std::cerr << "Can't create color stream on device: " << OpenNI::getExtendedError() << std::endl;
-    		return -1;
-    	}
+	
+	// Video size
+    size = cv::Size(capture_color.get(3), capture_color.get(4));
+	if (size.width != capture_depth.get(3) || size.height != capture_depth.get(4)) {
+		std::cout << "Color and depth video have different sizes." << std::endl;
+		return -1;
+	}
+	
+	int length = capture_color.get(7);
+	if (length != capture_depth.get(7)) {
+		std::cout << "Color and depth video have different lengths." << std::endl;
+		return -1;
 	}
 	
 	
     // Print help
-	std::cout << "c - calibrate pose and time \n"
-        << "p - subtract background \n"
-        << "t - save tracking data \n"
-        << "s - save frame \n"
-        << "r / b / g / y - red / blue / green / yellow color analysis \n"
+	std::cout << "r / b / g / y - red / blue / green / yellow color analysis \n"
         << "q - quit" << std::endl;
 	
 
-    // Init color and depth frames, start streames
-	VideoFrameRef color_frame;
-	VideoFrameRef depth_frame;
-	depth_stream.start();
-	color_stream.start();
-	int max_depth = depth_stream.getMaxPixelValue();	
-    
-    // Read first frame
-    if (STATUS_OK != color_stream.readFrame(&color_frame))
-    {
-        std::cerr << "Can't read color frame." << std::endl;
-        return -1;
-    }
-    if (STATUS_OK != depth_stream.readFrame(&depth_frame))
-    {
-        std::cerr << "Can't read depth frame." << std::endl;
-        return -1;
-    }
-    const cv::Mat color_frame_temp( color_frame.getHeight(), color_frame.getWidth(), CV_8UC3, (void*)color_frame.getData() );
-    cv::Mat frame_color_temp;
-    cv::cvtColor(color_frame_temp, frame_color_temp, CV_RGB2BGR);
-    
-    const cv::Mat depth_frame_temp( depth_frame.getHeight(), depth_frame.getWidth(), CV_16UC1, (void*)depth_frame.getData() );
-    cv::Mat frame_depth_temp;
-    depth_frame_temp.convertTo(frame_depth_temp, CV_8U, 255. / max_depth);
-    
-    
+
     // Init sphere detector
+	int current_frame_index = 0;
 	float sigma_accuracy = 4.;
 	
-    SphereDetector sphere_detector = SphereDetector(size, frame_color_temp, frame_depth_temp, sphere_radius, camera_roll, focal_length, background_image_dir, depth_background_image_dir);
+    SphereDetector sphere_detector = SphereDetector(size, sphere_radius, camera_roll, focal_length, background_color_path, background_depth_path);
     SphereFilters sphere_filters = SphereFilters(sigma_accuracy);
     PoseEstimator pose_estimator = PoseEstimator();
-
+	
     // Init calibration pose and time
     Pose calibration_pose;
     calibration_pose.position = Eigen::Vector3f::Zero();
     calibration_pose.orientation = Eigen::Vector3f::Zero();
-    calibration_pose.time = getTime();
+    calibration_pose.time = current_frame_index;
     
     
     // Prepare while loop
+	cv::Mat frame_color;
+	cv::Mat frame_depth;
     std::vector<Pose> pose_history;
-    int current_time = getTime();
     std::vector<Sphere> current_spheres;
-	while (true)
+    bool recording = true;
+	while (recording)
 	{
-    	// Check possible errors
-    	if (!color_stream.isValid())
-    	{
-    		std::cerr << "Color stream not valid" << std::endl;
-    		break;
-    	}
-    	
-    	if (STATUS_OK != color_stream.readFrame( &color_frame ))
-    	{
-    		std::cerr << "Can't read color frame'" << std::endl;
-    		break;
-    	}
-    	
-    	if (STATUS_OK != depth_stream.readFrame( &depth_frame ))
-    	{
-    		std::cerr << "Can't read depth frame'" << std::endl;
-    		break;
-    	}
-    	
-        
-    	// Grab frames, result is frame and frame_depth
-    	const cv::Mat color_frame_temp( color_frame.getHeight(), color_frame.getWidth(), CV_8UC3, (void*)color_frame.getData() );
-        cv::Mat frame;
-        cv::cvtColor(color_frame_temp, frame, CV_RGB2BGR);
-        
-    	const cv::Mat depth_frame_temp( depth_frame.getHeight(), depth_frame.getWidth(), CV_16UC1, (void*)depth_frame.getData() );
-    	cv::Mat frame_depth;
-    	depth_frame_temp.convertTo(frame_depth, CV_8U, 255. / max_depth);
-        
-        
-        // Get current time and time difference
-        double last_time = current_time; // [s]
-        current_time = getTime(); // [s]
-        double delta_time = current_time - last_time; // [s]
-        
+		// Get new frame
+    	if (!capture_color.grab() || !capture_depth.grab())
+        {
+            break;
+        }
+		capture_color.retrieve(frame_color);
+		capture_depth.retrieve(frame_depth);
+        current_frame_index = capture_color.get(1);
 
         // Detect spheres
-    	cv::Mat frame_info = frame.clone();
-    	std::vector<Measurement> measurements = sphere_detector.findSpheres(frame_info, frame_depth, current_time);
+    	cv::Mat frame_info = frame_color.clone();
+    	std::vector<Measurement> measurements = sphere_detector.findSpheres(frame_info, frame_depth, current_frame_index);
         
         
         // Update filter and get tracked spheres
-        sphere_filters.update(measurements, current_time);
-        std::vector<Sphere> tracked_spheres = sphere_filters.getTrackedSpheres(current_time);
+        sphere_filters.update(measurements, current_frame_index);
+        std::vector<Sphere> tracked_spheres = sphere_filters.getTrackedSpheres(current_frame_index);
         
         
         // Draw spheres
-        sphere_detector.showSpheres(tracked_spheres, frame);
+        sphere_detector.showSpheres(tracked_spheres, frame_color);
         
 
         // Calculate pose
@@ -311,7 +214,7 @@ int main(int argc, char *argv[])
 		if (calculate_pose)
 		{
 			pose = pose_estimator.getPoseFromModel(copter, tracked_spheres);
-	        pose.time = current_time;
+	        pose.time = current_frame_index;
 	        if (tracked_spheres.size() >= 3)
 	        {
 	            Pose pose_result = pose - calibration_pose;
@@ -325,24 +228,6 @@ int main(int argc, char *argv[])
     	char key = cv::waitKey(10);
         switch (key)
         {
-            case 'p':
-                sphere_detector.saveBackground(frame, frame_depth);
-                break;
-                
-            case 's':
-                std::cout << "Frame saved." << std::endl;
-                cv::imwrite(save_image_dir, frame_info);
-                break;
-                
-            case 'c':
-                calibration_pose = pose;
-                std::cout << "Pose and time calibrated." << std::endl;
-                break;
-                
-            case 't':
-                saveTrackingData(pose_history);
-                break;
-            
             // Change debug color for further analysis
             case 'y': sphere_detector.debug_color = Yellow; break;
             case 'g': sphere_detector.debug_color = Green; break;
@@ -350,16 +235,10 @@ int main(int argc, char *argv[])
             case 'r': sphere_detector.debug_color = Red; break;
                 
             case 'q':
-                return 0;
+                recording = false;
                 break;
         }
 	}
-    
-    // Destroy objects, otherwise errors will occure next time...
-	depth_stream.destroy();
-	color_stream.destroy();
-	device.close();
-	OpenNI::shutdown();
     
     return 0;
 }

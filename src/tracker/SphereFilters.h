@@ -217,7 +217,7 @@ public:
         yellow_filter = new LikelihoodFilter(Yellow, sigma_accuracy);
     }
     
-    void update(std::vector<Measurement> ms, float time)
+    void update(std::vector<Measurement> measurements, float time)
     {
         std::vector<Measurement> red_measurements, blue_measurements, green_measurements, yellow_measurements;
         for (auto m : measurements)

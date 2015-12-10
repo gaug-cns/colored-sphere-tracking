@@ -28,7 +28,7 @@ Colored Sphere Tracking uses [CMake](http://www.cmake.org) for building, therefo
 
 ## Usage
 
-A model consists of the colors and positions of the used spheres. The [FlyPi Model](https://github.com/gaug-cns/colored-sphere-tracking/blob/master/models/flypi.ini) file shows the implementation.
+A model consists of the colors and positions of the used spheres. The [Example Model](https://github.com/gaug-cns/colored-sphere-tracking/blob/master/model-example.ini) file shows the implementation.
 
 
 ## Contribution
