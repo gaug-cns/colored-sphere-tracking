@@ -11,15 +11,12 @@
 class SphereDetector
 {    
 public:
-    SphereDetector(cv::Size size, 
-        float ball_radius, float camera_roll, float focal_length, 
+    SphereDetector(cv::Size size, float ball_radius, float camera_roll, float focal_length, 
         std::string background_image_dir, std::string depth_background_image_dir) : 
-        size(size), ball_radius(ball_radius), camera_roll(camera_roll), focal_length(focal_length), background_image_dir(background_image_dir), depth_background_image_dir(depth_background_image_dir)
+        size(size), ball_radius(ball_radius), camera_roll(camera_roll), focal_length(focal_length)
     {
-        background = cv::imread(background_image_dir, 1);
+        color_background = cv::imread(background_image_dir, 1);
         depth_background = cv::imread(depth_background_image_dir, 1);
-        
-        // debug_color = Red;
         
         // Colors for drawing
         draw_color_map[Red] = cv::Scalar(0, 0, 255);
@@ -35,42 +32,28 @@ public:
         color_map[Blue] = {110, 24, 100, 50, 255, 255};
         
         color_threshold_difference = 25;
+        depth_threshold_difference = 2;
         
         center = cv::Point2f(size.width / 2, size.height / 2);
+        
+        // Hough paramters
+        min_distance = size.width / 50;
+        p1 = 40;
+        p2 = 10;
+        
+        min_radius = 3;
+        max_radius = size.width / 5;
     }
     
-    void showSpheres(std::vector<Sphere> spheres, cv::Mat frame)
-    {
-        for (auto sphere : spheres)
-        {
-           
-            std::vector<float> circle = getCircleDrawingFromPosition(sphere.position);
-            cv::Point center(circle[0], circle[1]);
-            int radius = circle[2];
-            
-            if (radius > 0)
-                cv::circle(frame, center, radius, draw_color_map[sphere.color], 2, 8, 0);
-        }
-        cv::imshow("final spheres", frame);
-    }
-    
+
+
     std::vector<Measurement> findSpheres(cv::Mat frame, cv::Mat depth_frame, double time)
     {
         cv::Mat color_diff_threshold = getColorDifferenceBinary(frame);
-        // cv::imshow("color_diff_threshold", color_diff_threshold);
-        
-        /* cv::Mat depth_diff_threshold = getDepthDifferenceBinary(depth_frame);
-        cv::imshow("depth_diff_threshold", depth_diff_threshold); */
+        // cv::Mat depth_diff_threshold = getDepthDifferenceBinary(depth_frame);
         
         cv::Mat diff_threshold;
         cv::bitwise_and(color_diff_threshold, color_diff_threshold, diff_threshold);
-        
-        // Hough paramters
-        int min_distance = frame.rows / 50;
-        int p1 = 40;
-        int p2 = 10;
-        int min_radius = 3;
-        int max_radius = frame.rows / 5;
         
         float min_radius_deviation = 0.15; // 0.2;
         float max_radius_deviation = 1.5; // 1.5;
@@ -82,8 +65,6 @@ public:
             std::vector<int> color_range = it->second;
             
             cv::Mat frame_gray = inHSVRange(frame, color_range);
-            if (color == debug_color) 
-                cv::imshow("color_filter", frame_gray);
             
             // Take difference of frame
             cv::Mat diff_frame;
@@ -91,8 +72,8 @@ public:
             
             // Blur before hough circles
             cv::GaussianBlur(diff_frame, diff_frame, cv::Size(5, 5), 1.5, 1.5);
-            if (color == debug_color) 
-                cv::imshow("final_before_hough", diff_frame);
+            if (color == debug_color)
+                cv::imshow("Final Before Hough", diff_frame);
             
             std::vector<cv::Vec3f> circles;
             cv::HoughCircles(diff_frame, circles, CV_HOUGH_GRADIENT, 2, min_distance, p1, p2, min_radius, max_radius);
@@ -111,7 +92,9 @@ public:
                 if (r / r_expected > min_radius_deviation && r / r_expected < max_radius_deviation)
                 {
                     if (color == debug_color)
-                        cv::circle(frame, cv::Point(x, y), r, cv::Scalar(0, 0, 0), 2, 8, 0);
+                    {
+                        cv::circle(frame, cv::Point(x, y), r, cv::Scalar(0, 0, 0));
+                    }
                     
                     Eigen::Vector3f position = globalFromImageCoordinates(cv::Point2f(x, y), d);
                     
@@ -125,7 +108,9 @@ public:
             // Calculate probability
             std::vector<float> probabilities = {};
             for (int i = 0; i < measurements.size(); i++)
+            {
                 probabilities.push_back( exp(- 0.6 * i) );
+            }
             
             float sum_probabilities = std::accumulate(probabilities.begin(), probabilities.end(), 0);
             for (int i = 0; i < measurements.size(); i++)
@@ -134,34 +119,33 @@ public:
             result.insert(result.end(), measurements.begin(), measurements.end());
             
             if (color == debug_color)
-                cv::imshow("measurements", frame);
+                cv::imshow("Measurements", frame);
         }
         
         return result;
     }
     
-    int debug_color;
+    
+    void drawSpheres(std::vector<Sphere> spheres, cv::Mat frame)
+    {
+        for (auto sphere : spheres)
+        {
+            cv::Vec3f circle = getCircleDrawingFromPosition(sphere.position);
+            if (circle[2] > 0)
+            {
+                cv::circle(frame, cv::Point(circle[0], circle[1]), circle[2], draw_color_map[sphere.color]);
+            }
+        }
+        cv::imshow("Final Spheres", frame);
+    }
+    
+    void setDebugColor(Color color)
+    {
+        debug_color = color;
+    }
     
     
 private:
-    cv::Mat background;
-    cv::Mat depth_background;
-    cv::Size size;
-    cv::Point2f center;
-    
-    float ball_radius;
-    float camera_roll;
-    float focal_length;
-    
-    std::string background_image_dir;
-    std::string depth_background_image_dir;
-    
-    std::map<Color, cv::Scalar> draw_color_map;
-    std::map<Color, std::vector<int>> color_map;
-    
-    int color_threshold_difference;
-    
-    
     cv::Mat inHSVRange(cv::Mat frame, std::vector<int> color_range)
     {
         int hue = color_range.at(0);
@@ -197,11 +181,11 @@ private:
         return frame_gray;
     }
     
-    cv::Mat getColorDifferenceBinary(cv::Mat frame)
+    cv::Mat getColorDifferenceBinary(cv::Mat color_frame)
     {
         // Take difference
         cv::Mat diff;
-        cv::absdiff(frame, background, diff);
+        cv::absdiff(color_frame, color_background, diff);
         
         // Blur and gray difference
         cv::Mat diff_gray;
@@ -215,7 +199,7 @@ private:
         return diff_threshold;
     }
     
-    /* cv::Mat getDepthDifferenceBinary(cv::Mat depth_frame)
+    cv::Mat getDepthDifferenceBinary(cv::Mat depth_frame)
     {
         // Take difference
         cv::Mat diff_gray;
@@ -225,12 +209,11 @@ private:
         cv::GaussianBlur(diff_gray, diff_gray, cv::Size(1,1), 1.5, 1.5);
         
         // Take threshold of differnce
-        int threshold_difference = 2;
         cv::Mat diff_threshold;
-        cv::threshold(diff_gray, diff_threshold, threshold_difference, 255, cv::THRESH_BINARY);
+        cv::threshold(diff_gray, diff_threshold, depth_threshold_difference, 255, cv::THRESH_BINARY);
         
         return diff_threshold;
-    } */
+    }
     
     Eigen::Matrix3f getRotation(float roll)
     {
@@ -253,7 +236,7 @@ private:
         return transformed;
     }
     
-    std::vector<float> getCircleDrawingFromPosition(Eigen::Vector3f position)
+    cv::Vec3f getCircleDrawingFromPosition(Eigen::Vector3f position)
     {
         Eigen::Vector3f transformed = getRotation(camera_roll) * position;
         
@@ -262,9 +245,29 @@ private:
         float image_y = - focal_length / d * transformed(2) + center.y;
         float image_radius = focal_length * ball_radius / d;
         
-        std::vector<float> circle = {image_x, image_y, image_radius};
-        return circle;
+        return cv::Vec3f(image_x, image_y, image_radius);
     }
+    
+    
+    
+    cv::Mat color_background, depth_background;
+    cv::Size size;
+    cv::Point2f center;
+    
+    float ball_radius;
+    float camera_roll;
+    float focal_length;
+    
+    std::map<Color, cv::Scalar> draw_color_map;
+    std::map<Color, std::vector<int>> color_map;
+    
+    int color_threshold_difference, depth_threshold_difference;
+    
+    int min_distance;
+    int p1, p2;
+    int min_radius, max_radius;
+    
+    Color debug_color;
 };
 
 #endif

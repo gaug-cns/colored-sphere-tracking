@@ -152,8 +152,8 @@ int main(int argc, char *argv[])
 	
 	int length = capture_color.get(7);
 	if (length != capture_depth.get(7)) {
-		std::cout << "Color and depth video have different lengths." << std::endl;
-		return -1;
+		std::cout << "Color and depth video have different lengths. " << length << " vs. " << capture_depth.get(7) << std::endl;
+		// return -1;
 	}
 	
 	
@@ -162,9 +162,7 @@ int main(int argc, char *argv[])
         << "q - quit" << std::endl;
 	
 
-
     // Init sphere detector
-	int current_frame_index = 0;
 	float sigma_accuracy = 4.;
 	
     SphereDetector sphere_detector = SphereDetector(size, sphere_radius, camera_roll, focal_length, background_color_path, background_depth_path);
@@ -175,12 +173,13 @@ int main(int argc, char *argv[])
     Pose calibration_pose;
     calibration_pose.position = Eigen::Vector3f::Zero();
     calibration_pose.orientation = Eigen::Vector3f::Zero();
-    calibration_pose.time = current_frame_index;
+    calibration_pose.time = 0;
     
     
     // Prepare while loop
 	cv::Mat frame_color;
 	cv::Mat frame_depth;
+	int current_frame_index;
     std::vector<Pose> pose_history;
     std::vector<Sphere> current_spheres;
     bool recording = true;
@@ -206,7 +205,7 @@ int main(int argc, char *argv[])
         
         
         // Draw spheres
-        sphere_detector.showSpheres(tracked_spheres, frame_color);
+        sphere_detector.drawSpheres(tracked_spheres, frame_color);
         
 
         // Calculate pose
@@ -229,10 +228,10 @@ int main(int argc, char *argv[])
         switch (key)
         {
             // Change debug color for further analysis
-            case 'y': sphere_detector.debug_color = Yellow; break;
-            case 'g': sphere_detector.debug_color = Green; break;
-            case 'b': sphere_detector.debug_color = Blue; break;
-            case 'r': sphere_detector.debug_color = Red; break;
+            case 'y': sphere_detector.setDebugColor(Yellow); break;
+            case 'g': sphere_detector.setDebugColor(Green); break;
+            case 'b': sphere_detector.setDebugColor(Blue); break;
+            case 'r': sphere_detector.setDebugColor(Red); break;
                 
             case 'q':
                 recording = false;
