@@ -1,9 +1,10 @@
 # Colored Sphere Tracking
 
-Using a 3D sensing camera (like Microsoft Kinect or Asus Xtion Pro) and colored spheres to estimate the pose of an object. 
+Using a 3D sensing camera (like Microsoft Kinect or Asus Xtion Pro) and colored spheres to estimate the pose of an object.
+Colored Sphere Tracking relies on recorded videos and/or images, e.g. using [OpenNI2 Recorder](https://github.com/gaug-cns/openni2-recorder).
 
 The algorithm processes following steps:
-- Background subtraction (in /calibration directory, a new background is taken with `p`).
+- Background subtraction.
 - Detection of colored regions using a HSV color filter.
 - Detection of spheres with Hough circles algorithm.
 - Error correction using the depth and hough radius and known sphere size.
@@ -14,8 +15,7 @@ The algorithm processes following steps:
 ## Installation
 
 Colored Sphere Tracking depends on:
-- [OpenNI 2](http://structure.io/openni)
-- [OpenCV](http://opencv.org) (with OpenNI 2 support, this needs to be enabled in build step)
+- [OpenCV](http://opencv.org)
 - [Eigen](http://eigen.tuxfamily.org)
 - [Ceres Solver](http://ceres-solver.org)
 

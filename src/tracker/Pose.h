@@ -18,13 +18,13 @@ struct Pose
     Eigen::Vector3f position;
     Eigen::Vector3f orientation;
     double time;
-    
+
     Pose() : time(0.)
     {
         position = Eigen::Vector3f::Zero();
         orientation = Eigen::Vector3f::Zero();
     }
-    
+
     Pose operator+(const Pose &motion)
     {
         Pose result = Pose();
@@ -34,7 +34,7 @@ struct Pose
         result.time = time + motion.time;
         return result;
     }
-    
+
     Pose operator-(const Pose &motion)
     {
         Pose result = Pose();
@@ -44,12 +44,12 @@ struct Pose
         result.time = time - motion.time;
         return result;
     }
-    
+
     Pose operator+=(const Pose &motion)
     {
         return *this + motion;
     }
-    
+
     void rotate(float roll, float pitch, float yaw)
     {
         Rotation rot = Rotation(roll, pitch, yaw);

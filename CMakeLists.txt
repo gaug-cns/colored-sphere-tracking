@@ -14,7 +14,6 @@ find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
 
 
-link_directories(${PC_OPENNI2_LIBRARY_DIRS})
 include_directories(include ${CERES_INCLUDE_DIRS} ${EIGEN_INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS})
 
 file(GLOB SRCFILES src/*.cpp)
