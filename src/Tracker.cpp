@@ -40,7 +40,7 @@ void saveTrackingData(std::vector<Pose> pose_history)
     std::ofstream myfile;
     myfile.open(tracking_data_path);
 
-    myfile << "t[s],x[m],y[m],z[m],roll[rad],pitch[rad],yaw[rad]" << std::endl;
+    myfile << "idx,x,y,z,roll,pitch,yaw" << std::endl;
     for (auto pose : pose_history)
     {
         myfile << pose.time << ","
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
     bool recording = true;
     if (calculate_pose)
     {
-        std::cout << "x,y,z,roll,pitch,yaw" << std::endl;
+        std::cout << "idx,x,y,z,roll,pitch,yaw" << std::endl;
     }
 	while (recording)
 	{
@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
 	        {
 	            Pose pose_result = pose - calibration_pose;
 	            pose_history.push_back(pose_result);
-	            std::cout << pose.position(X) << "," << pose.position(Y) << "," << pose.position(Z) << "," << pose.orientation(ROLL) << "," << pose.orientation(PITCH) << "," << pose.orientation(YAW) << std::endl;
+	            std::cout << current_frame_index << "," << pose.position(X) << "," << pose.position(Y) << "," << pose.position(Z) << "," << pose.orientation(ROLL) << "," << pose.orientation(PITCH) << "," << pose.orientation(YAW) << std::endl;
 	        }
 		}
 

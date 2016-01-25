@@ -39,10 +39,12 @@ public:
         // Hough paramters
         min_distance = size.width / 50;
         p1 = 40;
-        p2 = 10;
+        p2 = 8;
 
         min_radius = 3;
-        max_radius = size.width / 5;
+        max_radius = size.width / 10;
+
+        median_blur_size = 9;
     }
 
 
@@ -69,9 +71,13 @@ public:
             // Take difference of frame
             cv::Mat diff_frame;
             cv::bitwise_and(diff_threshold, frame_gray, diff_frame);
+            if (color == debug_color)
+            {
+                cv::imshow("Bitwise Color And", diff_frame);
+            }
 
             // Blur before hough circles
-            cv::GaussianBlur(diff_frame, diff_frame, cv::Size(5, 5), 1.5, 1.5);
+            cv::medianBlur(diff_frame, diff_frame, median_blur_size);
             if (color == debug_color)
             {
                 cv::imshow("Final Before Hough", diff_frame);
@@ -105,6 +111,8 @@ public:
                     measurement.time = time; // [ms]
                     measurements.push_back(measurement);
                 }
+
+                break;
             }
 
             // Calculate probability
@@ -139,8 +147,7 @@ public:
             cv::Vec3f circle = getCircleDrawingFromPosition(sphere.position);
             if (circle[2] > 0)
             {
-                std::cout << cv::Point(circle[0], circle[1]) << " " << circle[2] << std::endl;
-                // cv::circle(frame, cv::Point(circle[0], circle[1]), circle[2], draw_color_map[sphere.color]);
+                cv::circle(frame, cv::Point(circle[0], circle[1]), circle[2], draw_color_map[sphere.color]);
             }
         }
         cv::imshow("Final Spheres", frame);
@@ -197,7 +204,7 @@ private:
         // Blur and gray difference
         cv::Mat diff_gray;
         cv::cvtColor(diff, diff_gray, CV_BGR2GRAY);
-        cv::GaussianBlur(diff_gray, diff_gray, cv::Size(5, 5), 1.5, 1.5);
+        cv::GaussianBlur(diff_gray, diff_gray, cv::Size(5, 5), 2);
 
         // Take threshold of differnce
         cv::Mat diff_threshold;
@@ -213,7 +220,7 @@ private:
         cv::absdiff(depth_frame, depth_background, diff_gray);
 
         // Blur difference
-        cv::GaussianBlur(diff_gray, diff_gray, cv::Size(1,1), 1.5, 1.5);
+        cv::GaussianBlur(diff_gray, diff_gray, cv::Size(1,1), 2);
 
         // Take threshold of differnce
         cv::Mat diff_threshold;
@@ -245,7 +252,7 @@ private:
 
     cv::Vec3f getCircleDrawingFromPosition(Eigen::Vector3f position)
     {
-        Eigen::Vector3f transformed = getRotation(camera_roll) * position;
+        Eigen::Vector3f transformed = getRotation(-camera_roll) * position;
 
         float d = transformed(1);
         float image_x = focal_length / d * transformed(0) + center.x;
@@ -273,6 +280,8 @@ private:
     int min_distance;
     int p1, p2;
     int min_radius, max_radius;
+
+    int median_blur_size;
 
     Color debug_color;
 };

@@ -72,7 +72,7 @@ public:
         // Remove old (unimportant) entries
         for (int i = 0; i < history.size(); i++)
         {
-            if (history.at(i).time < time - 100) // [ms]
+            if (history.at(i).time < time - 10) // [idx]
             {
                 history.erase(history.begin() + i);
                 i--;
@@ -106,7 +106,7 @@ public:
         }
 
         std::vector<Measurement> initials(history.begin() + index_sum_maximum, history.end());
-        if (1 == initials.size())
+        if (initials.size() == 1)
         {
             saveLocalMaximum( initials.back().mean );
             return;
@@ -166,7 +166,7 @@ public:
 
     bool isTracked()
     {
-        return (0.8 < certainty);
+        return (certainty >= 1.0);
     }
 
 
